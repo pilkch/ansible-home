@@ -1,0 +1,17 @@
+---
+- block:
+  - name: Ensure /etc/containers exists
+    file:
+      state: directory
+      path: /etc/containers
+
+  - name: Ensure iptables is installed
+    package:
+      name: iptables
+      state: present
+
+  - name: Install podman
+    package:
+      name: podman
+
+  become: true

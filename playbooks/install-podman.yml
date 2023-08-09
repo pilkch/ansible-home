@@ -1,0 +1,4 @@
+---
+- hosts: podman
+  roles:
+    - role: podman
