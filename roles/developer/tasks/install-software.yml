@@ -1,0 +1,45 @@
+---
+- name: Install developer general tools
+  package:
+    name:
+      - git
+      - curl
+      - jq
+      - nettools
+      - strace
+      - wget
+      - xmllint
+    state: latest
+  become: true
+
+- name: Install developer toolchains
+  package:
+    name:
+      - gcc
+      - gcc-c++
+      - gdb
+      - valgrind
+      - make
+      - cmake
+      - afl++
+    state: latest
+  become: true
+
+- name: Install developer libraries
+  package:
+    name:
+      - gtest-devel
+      - gnutls-devel
+      - libxdg-basedir-devel
+      - SDL2-devel
+      - SDL2_image-devel
+      - SDL2_mixer-devel
+      - SDL2_net-devel
+      - SDL2_ttf-devel
+      - mesa-libGL1-devel
+      - mesa-libGLU1-devel
+      - GLee-devel
+      - freetype-devel
+      - libxml2-devel
+    state: latest
+  become: true

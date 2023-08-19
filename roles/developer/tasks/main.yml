@@ -1,0 +1,7 @@
+---
+- include tasks: install-software.yml
+
+- name: Create dev directory
+  file:
+    path: "{{ ansible_env.HOME }}/Documents/dev"
+    state: directory

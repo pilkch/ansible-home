@@ -1,0 +1,4 @@
+---
+- hosts: developer
+  roles:
+    - role: developer
