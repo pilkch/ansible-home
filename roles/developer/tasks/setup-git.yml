@@ -1,0 +1,24 @@
+---
+- name: Create .ssh directory
+  file:
+    path: "{{ ansible_env.HOME }}/.ssh"
+    state: directory
+    mode: "0640"
+
+- name: Copy the certificate to the host
+  copy:
+    content: '{{ git_certificate }}'
+    dest: "{{ ansible_env.HOME }}/.ssh/github_id_rsa.pub"
+    mode: 0644
+
+- name: Copy the private key to the host
+  copy:
+    content: '{{ git_private_key }}'
+    dest: "{{ ansible_env.HOME }}/.ssh/github_id_rsa"
+    mode: 0600
+  no_log: true
+
+- name: Set the git configuration
+  ansible.builtin.template:
+    src: templates/gitconfig.j2
+    dest: "{{ ansible_env.HOME }}/.gitconfig"
