@@ -4,14 +4,24 @@
     file:
       state: directory
       path: /etc/containers
+      owner: root
+      group: root
+      mode: '0755'
 
-  - name: Ensure iptables is installed
-    package:
-      name: iptables
-      state: present
+  - name: Set up registries.conf
+    template:
+      src: registries.conf.j2
+      dest: /etc/containers/registries.conf
+      owner: root
+      group: root
+      mode: '0644'
+      backup: yes
 
-  - name: Install podman
+  - name: Install iptables and podman
     package:
-      name: podman
+      name:
+        - iptables
+        - podman
+      state: latest
 
   become: true
