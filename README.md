@@ -2,7 +2,7 @@
 
 Ansible roles for deploying my home computers and servers.
 
-## Setup
+## Setup for Git Developer Roles
 
 1. Set your git email and user name in inventories/group_vars/developer.yml
 ```yaml
@@ -35,5 +35,6 @@ git_private_key: |
 ## Usage
 
 ```bash
-ansible-playbook -i inventories/network_home.ini -l myhost --ask-vault-pass developer.yml
+ansible-playbook -i inventories/network_home.ini -l myserver --ask-vault-pass setup-server.yml
+ansible-playbook -i inventories/network_home.ini -l mydeveloperworkstation --ask-vault-pass setup-developer.yml
 ```
