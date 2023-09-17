@@ -1,5 +1,4 @@
 ---
-- hosts: developer
+- hosts: server
   roles:
     - role: update_firmware
-    - role: developer

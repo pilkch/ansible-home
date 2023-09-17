@@ -1,0 +1,31 @@
+---
+- name: Install package
+  package:
+    name: fwupd
+    state: latest
+  become: true
+
+- name: Start and enable service
+  service:
+    name: fwupd
+    status: started
+    enabled: true
+  become: true
+
+- name: Get devices
+  command: fwupdmgr get-devices
+
+- name: Display devices detected by fwupd
+  command: fwupdmgr refresh
+
+- name: Download the latest updates
+  command: fwupdmgr get-updates
+
+- name: Update firmware
+  command: fwupdmgr update -y --no-reboot-check --json
+  register: update_firmware_output
+  vars:
+    json: "{{ update_firmware_output.stdout | from_json }}"
+  failed_when: "'Successfully installed firmware' not in update_firmware_output.stdout"
+  notify: Reboot machine
+  become: true
