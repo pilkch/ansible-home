@@ -1,4 +1,8 @@
 ---
 - hosts: server
   roles:
-    - role: update_firmware
+    - update_firmware
+
+- hosts: server:&podman
+  roles:
+    - podman

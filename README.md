@@ -35,6 +35,13 @@ git_private_key: |
 ## Usage
 
 ```bash
-ansible-playbook -i inventories/network_home.ini -l myserver --ask-vault-pass setup-server.yml
-ansible-playbook -i inventories/network_home.ini -l mydeveloperworkstation --ask-vault-pass setup-developer.yml
+ansible-playbook -i inventories/network_home.ini -l myfileserver --ask-vault-pass playbooks/setup-server.yml
 ```
+
+```bash
+ansible-playbook -i inventories/network_home.ini -l mydeveloperworkstation --ask-vault-pass playbooks/setup-developer.yml
+```
+
+## Notes
+
+The ansible doesn't deploy the docker compose files for Gitlab, Home Assistant, etc.

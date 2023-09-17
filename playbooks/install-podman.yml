@@ -1,4 +1,4 @@
 ---
 - hosts: podman
   roles:
-    - role: podman
+    - podman
