@@ -55,6 +55,7 @@
 # sudo setsebool -P container_use_devices=true
 # This is better than --privileged, but I think it means the selinux permissions are not quite right for /dev/ttyACM0 yet?
 # https://www.redhat.com/sysadmin/privileged-flag-container-engines
+# https://github.com/containers/podman/blob/main/troubleshooting.md#20-passed-in-devices-or-files-cant-be-accessed-in-rootless-container
 - name: Set selinux container_use_devices=true
   ansible.posix.seboolean:
     name: container_use_devices
