@@ -2,7 +2,6 @@
 - name: Install developer general tools
   package:
     name:
-      - git
       - curl
       - jq
       - nettools

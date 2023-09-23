@@ -1,4 +1,13 @@
 ---
+- name: Install developer general tools
+  package:
+    name:
+      - git
+      - vim
+    state: latest
+  become: true
+
+# SSH keys
 - name: Create .ssh directory
   file:
     path: "{{ ansible_env.HOME }}/.ssh"
@@ -18,7 +27,18 @@
     mode: 0600
   no_log: true
 
-- name: Set the git configuration
-  ansible.builtin.template:
-    src: templates/gitconfig.j2
-    dest: "{{ ansible_env.HOME }}/.gitconfig"
+
+# User configuration
+- name: Set email
+  git_config:
+    name: "{{ item.name }}"
+    scope: global
+    value: "{{ item.value }}"
+  with_items:
+    - { name: user.name, value: "{{ git_config_user_name }}" }
+    - { name: user.email, value: "{{ git_config_email }}" }
+    - { name: pull.rebase, value: false }
+    - { name: push.autoSetupRemote, value: true }
+    - { name: init.defaultBranch, value: main }
+    - { name: color.ui, value: auto }
+    - { name: core.editor, value: vim }
