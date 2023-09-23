@@ -5,27 +5,51 @@
     state: latest
   become: true
 
+
+# Set up the service
+- block:
+  # Disable checking for legacy BIOS updates when we are not in UEFI mode, as we can't apply them anyway
+  # https://github.com/fwupd/fwupd/wiki/PluginFlag:legacy-bios
+  - name: Check to see if we are booting with EFI or UEFI
+    set_fact:
+      booted_with_efi: "{{ ansible_facts['mounts'] | selectattr('mount', 'equalto', '/boot/efi') | list | length > 0 }}"
+
+  - name: Tell fwupd to ignore UEFI updates
+    lineinfile:
+      path: /etc/fwupd/daemon.conf
+      create: true
+      regexp: ^DisabledPlugins=.*
+      line: DisabledPlugins=test;invalid;bios
+      state: present
+    become: true
+    when: not booted_with_efi
+
 - name: Start and enable service
   service:
     name: fwupd
-    status: started
+    state: started
     enabled: true
   become: true
 
-- name: Get devices
-  command: fwupdmgr get-devices
 
-- name: Display devices detected by fwupd
-  command: fwupdmgr refresh
+# Update the firmware
+- name: Refresh list of supported devices
+  command: fwupdmgr refresh --force
 
 - name: Download the latest updates
-  command: fwupdmgr get-updates
+  command: fwupdmgr get-updates --json
+  register: fwupdmgr_get_updates_output
+
+- name: Show available updates
+  debug:
+    msg: "{{ fwupdmgr_get_updates_output.stdout | from_json }}"
 
 - name: Update firmware
   command: fwupdmgr update -y --no-reboot-check --json
-  register: update_firmware_output
+  register: _response_upgrade
+  when: json.Devices | length > 0
+  failed_when: "'Successfully installed firmware' not in _response_upgrade.stdout"
   vars:
-    json: "{{ update_firmware_output.stdout | from_json }}"
-  failed_when: "'Successfully installed firmware' not in update_firmware_output.stdout"
-  notify: Reboot machine
+    json: "{{ fwupdmgr_get_updates_output.stdout | from_json }}"
   become: true
+  notify: Reboot machine

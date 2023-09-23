@@ -1,0 +1,25 @@
+---
+- block:
+  - name: Install yum-utils (For needs-restarting utility)
+    ansible.builtin.yum:
+      name: yum-utils
+      state: latest
+
+  - name: Update all packages
+    ansible.builtin.yum:
+      name: '*'
+      state: latest
+
+  - name: Check if we need to reboot
+    command: needs-restarting -r
+    register: needs_reboot
+    failed_when: needs_reboot.rc not in [0,1]
+    changed_when: False
+  
+  - name: Reboot
+    reboot:
+      reboot_timeout: 300
+    when:
+      - needs_reboot.rc == 1
+
+  become: true

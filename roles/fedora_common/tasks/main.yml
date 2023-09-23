@@ -1,0 +1,6 @@
+---
+- include_tasks: install-yum-updates.yml
+
+# Disable sleep for servers and workstations
+- include_tasks: disable-sleep.yml
+  when: ansible_host not in ["laptops"]

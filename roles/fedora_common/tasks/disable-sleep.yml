@@ -1,0 +1,35 @@
+---
+- block:
+  - name: Disable sleep/suspend/hibernate/hybrid-sleep targets
+    systemd:
+      name: "{{ item }}"
+      masked: true
+    loop:
+      - sleep.target
+      - suspend.target
+      - hibernate.target
+      - hybrid-sleep.target
+
+  # TODO: Install acpid and control it via /etc/acpi/events?
+
+  - name: Install xset
+    package:
+      name: xset
+      state: latest
+
+  - name: Disable display power management
+    command: "xset -dpms"
+    changed_when: false
+    failed_when: false
+
+  - name: Disable blanking
+    command: "xset s noblank"
+    changed_when: false
+    failed_when: false
+
+  - name: Disable screensaver
+    command: "xset s off"
+    changed_when: false
+    failed_when: false
+
+  become: true
