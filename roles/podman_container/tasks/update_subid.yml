@@ -1,0 +1,22 @@
+---
+- name: Add user to subuid file
+  ansible.builtin.lineinfile:
+    path: /etc/subuid
+    regexp: "^{{ container_user }}:.*"
+    line: "{{ container_user }}:165536:65536"
+    create: true
+    mode: '0644'
+    owner: root
+    group: root
+  become: true
+
+- name: Add group to subgid file
+  ansible.builtin.lineinfile:
+    path: /etc/subgid
+    regexp: "^{{ container_group }}:.*"
+    line: "{{ container_group }}:165536:65536"
+    create: true
+    mode: '0644'
+    owner: root
+    group: root
+  become: true

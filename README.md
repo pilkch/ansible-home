@@ -32,16 +32,35 @@ git_private_key: |
   -----END PRIVATE KEY-----
 ```
 
-## Usage
+## Usage Examples
 
 ```bash
-ansible-playbook -i inventories/network_home.ini -l myfileserver --ask-vault-pass playbooks/setup-server.yml
+ansible-playbook -i inventories/network_home.ini -l fileserver.network.home -K playbooks/setup-server.yml
+ansible-playbook -i inventories/network_home.ini -l homeassistant.network.home -K playbooks/setup-server.yml
 ```
 
 ```bash
-ansible-playbook -i inventories/network_home.ini -l mydeveloperworkstation --ask-vault-pass playbooks/setup-developer.yml
+ansible-playbook -i inventories/network_home.ini -l chris_linux_computer -K playbooks/setup-developer.yml
+```
+
+## Debugging
+
+Show the output of a user container:
+```bash
+journalctl -f
+```
+
+Start, stop, or check the status a user container:
+```bash
+systemctl --user start/stop/status homeassistant-container
+```
+
+Check the groups that a user is in (Note: dialot for access to /dev/ttyUSB0 or /dev/ttyACM0):
+```bash
+$ groups
+homeassistant wheel dialout
 ```
 
 ## Notes
 
-The ansible doesn't deploy the docker compose files for Gitlab, Home Assistant, etc.
+The ansible doesn't deploy the docker compose files for Gitlab, vaultwarden, etc.

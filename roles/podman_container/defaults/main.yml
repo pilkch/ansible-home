@@ -1,0 +1,17 @@
+---
+service_name: "{{ container_name }}-container.service"
+
+# systemd dependencies (some are hardcoded; see templates)
+systemd_After: [network.target]
+systemd_Before: []
+systemd_Conflicts: []
+systemd_RequiredBy: []
+systemd_Requires: []
+systemd_WantedBy: []
+systemd_Wants: []
+
+systemd_tempdir: "%T"
+container_restart: on-failure
+container_stop_timeout: 15
+
+systemd_RestartSec: 30

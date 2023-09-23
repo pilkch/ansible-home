@@ -1,0 +1,86 @@
+---
+- set_fact:
+    home_assistant_volumes_basedir: "/home/{{ container_user }}/srv/homeassistant"
+
+- name: Create the config folder for Home Assistant
+  file:
+    path: "{{ home_assistant_volumes_basedir }}/config"
+    owner: "{{ container_user }}"
+    group: "{{ container_group }}"
+    state: directory
+
+
+# For reference, this is the docker-compose.yml we are trying to recreate
+#---
+#version: '3'
+#services:
+#  homeassistant:
+#    container_name: homeassistant
+#    image: "ghcr.io/home-assistant/home-assistant:2023.9"
+#    volumes:
+#      - /home/homeassistant/srv/homeassistant/config:/config
+#      - /etc/localtime:/etc/localtime:ro
+#    network_mode: host
+#    environment:
+#      - PUID=1000
+#      - PGID=1000
+#      - UMASK=007
+#      - TZ=Australia/Sydney
+#    ports:
+#      - 8123:8123
+#    devices:
+#      - /dev/ttyUSB0...:/path/to/device # Zigbee USB adapter, comment out if you have no such device
+#    security_opt:
+#      - no-new-privileges
+#    restart: unless-stopped
+
+
+# The SONOFF Zigbee 3.0 USB Dongle Plus V2 device is at /dev/ttyACM0
+#
+# Notes on /dev/ttyACM0/, /dev/ttyUSB0 and groups
+# https://www.redhat.com/sysadmin/files-devices-podman
+
+- name: Add the user to the dialout group for accessing /dev/ttyACM0
+  user:
+    name: "{{ container_user }}"
+    groups: dialout
+    append: yes
+    create_home: no
+  become: true
+
+# Slight hack to allow the container to access /dev/ttyACM0
+# I was getting selinux errors like this without it:
+# AVC avc:  denied  { open } for  pid=3867 comm="python3" path="/dev/ttyACM0"
+# This is the equivalent in bash:
+# sudo setsebool -P container_use_devices=true
+# This is better than --privileged, but I think it means the selinux permissions are not quite right for /dev/ttyACM0 yet?
+# https://www.redhat.com/sysadmin/privileged-flag-container-engines
+- name: Set selinux container_use_devices=true
+  ansible.posix.seboolean:
+    name: container_use_devices
+    state: true
+    persistent: true
+  become: true
+
+# This line has been removed and replaced with --tz local:
+# -v /etc/localtime:/etc/localtime:ro
+
+- name: Create the Home Assistant container
+  vars:
+    container_user: homeassistant
+    container_group: homeassistant
+    systemd_TimeoutStartSec: 90
+    container_name: homeassistant
+    container_image: "ghcr.io/home-assistant/home-assistant:{{ home_assistant_version }}"
+    container_run_args: >-
+      --rm
+      -p 8123:8123/tcp
+      -v "{{ home_assistant_volumes_basedir }}/config:/config:Z"
+      --tz local
+      --device /dev/ttyACM0 --group-add keep-groups
+      --hostname="{{ inventory_hostname }}"
+    container_firewall_ports:
+      - '8123/tcp'
+
+  import_role:
+    name: podman_container

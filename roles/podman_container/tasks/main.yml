@@ -1,0 +1,130 @@
+---
+# Install podman
+- name: Ensure podman is installed
+  ansible.builtin.package:
+    name: podman
+    state: present
+  become: true
+
+
+# User and Group
+- name: Check that we are running rootless only
+  ansible.builtin.fail:
+    msg: User "{{ container_user }}" is root
+  when: container_user == "root"
+
+
+- name: Get user info
+  ansible.builtin.user:
+    name: "{{ container_user }}"
+  check_mode: true
+  changed_when: false
+  register: user_info
+
+- name: Check the user exists
+  ansible.builtin.fail:
+    msg: User "{{ container_user }}" doesn't exist
+  when: user_info.name is not defined
+
+
+- name: Get group info
+  ansible.builtin.group:
+    name: "{{ container_group }}"
+  check_mode: true
+  changed_when: false
+  register: group_info
+
+- name: Check the group exists
+  ansible.builtin.fail:
+    msg: Group "{{ container_group }}" doesn't exist
+  when: group_info.name is not defined
+
+
+- name: Update subuid and subgid entries
+  ansible.builtin.import_tasks: update_subid.yml
+
+
+# Directories
+- name: Set systemd dir
+  ansible.builtin.set_fact:
+    service_files_dir: "{{ user_info.home }}/.config/systemd/user"
+  changed_when: false
+
+- name: Ensure systemd files directory exists
+  ansible.builtin.file:
+    path: "{{ service_files_dir }}"
+    state: directory
+    owner: "{{ container_user }}"
+    group: "{{ container_group }}"
+
+- name: Set systemd runtime dir
+  ansible.builtin.set_fact:
+    xdg_runtime_dir: "/run/user/{{ user_info.uid }}"
+  changed_when: false
+
+
+# Container
+- block:
+  - name: Set internal variables
+    ansible.builtin.set_fact:
+      _service_systemd_state: started
+      _container_run_args: "{{ container_run_args | default('') }}"
+    changed_when: false
+
+  - name: Check if user is lingering
+    ansible.builtin.stat:
+      path: "/var/lib/systemd/linger/{{ container_user }}"
+    register: user_lingering
+
+  - name: Enable lingering is needed
+    ansible.builtin.command: "loginctl enable-linger {{ container_user }}"
+    when:
+      - not user_lingering.stat.exists
+
+  - name: Convert container_run_args list to string
+    ansible.builtin.set_fact:
+      _container_run_args: "{{ _container_run_args | join(' ') }}"
+    when:
+      - _container_run_args is iterable
+      - _container_run_args is not string
+      - _container_run_args is not mapping
+
+  - name: Create systemd service file for {{ container_name }}
+    ansible.builtin.template:
+      src: "systemd-service.j2"
+      dest: "{{ service_files_dir }}/{{ service_name }}"
+      owner: "{{ container_user }}"
+      group: "{{ container_group }}"
+      mode: 0644
+    become: true
+    register: service_file
+
+  - name: Set variable to restart service
+    ansible.builtin.set_fact:
+      _service_systemd_state: restarted
+    when:
+      - service_file is changed 
+
+  - name: Ensure service is enabled and {{ _service_systemd_state }}
+    become: true
+    become_user: "{{ container_user }}"
+    environment:
+      XDG_RUNTIME_DIR: "{{ xdg_runtime_dir }}"
+    ansible.builtin.systemd:
+      name: "{{ service_name }}"
+      scope: user
+      state: "{{ _service_systemd_state }}"
+      enabled: true
+      daemon_reload: "{{ service_file is changed }}"
+
+
+# Firewall
+- name: Set firewall rules
+  ansible.posix.firewalld:
+    port: "{{ item }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  become: true
+  with_items: "{{ container_firewall_ports }}"
+  when: container_firewall_ports is defined

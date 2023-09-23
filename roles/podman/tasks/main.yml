@@ -1,26 +1,9 @@
 ---
 - block:
-  - name: Ensure /etc/containers exists
-    file:
-      state: directory
-      path: /etc/containers
-      owner: root
-      group: root
-      mode: '0755'
-
-  - name: Set up registries.conf
-    template:
-      src: registries.conf.j2
-      dest: /etc/containers/registries.conf
-      owner: root
-      group: root
-      mode: '0644'
-      backup: yes
-
-  - name: Install iptables and podman
+  - name: Install firewalld and podman
     package:
       name:
-        - iptables
+        - firewalld
         - podman
       state: latest
 

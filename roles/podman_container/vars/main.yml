@@ -1,0 +1,4 @@
+---
+cidpid_base: "{{ systemd_tempdir }}/%n-"
+pidfile: "{{ cidpid_base }}pid"
+cidfile: "{{ cidpid_base }}cid"
