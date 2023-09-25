@@ -1,3 +1,11 @@
 ---
 container_user: homeassistant
 container_group: homeassistant
+
+cert_organization_name: "My Organisation"
+
+home_assistant_fqdn: "{{ inventory_hostname }}"
+
+home_assistant_port: 8443
+
+home_assistant_timezone: Australia/Sydney

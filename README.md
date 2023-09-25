@@ -61,6 +61,17 @@ $ groups
 homeassistant wheel dialout
 ```
 
+Show the output of a user service:
+```bash
+journalctl --user -f -u homeassistant-container
+```
+
+Debugging Home Assistant confguration changes:
+```bash
+systemctl --user restart homeassistant-container
+tail -F srv/homeassistant/config/home-assistant.log
+```
+
 ## Notes
 
 The ansible doesn't deploy the docker compose files for Gitlab, vaultwarden, etc.

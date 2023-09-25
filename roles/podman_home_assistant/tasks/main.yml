@@ -2,12 +2,67 @@
 - set_fact:
     home_assistant_volumes_basedir: "/home/{{ container_user }}/srv/homeassistant"
 
+# Configuration files
 - name: Create the config folder for Home Assistant
   file:
     path: "{{ home_assistant_volumes_basedir }}/config"
     owner: "{{ container_user }}"
     group: "{{ container_group }}"
     state: directory
+
+- name: Add Home Assistant configuration file
+  ansible.builtin.template:
+    src: configuration.yaml.j2
+    dest: "{{ home_assistant_volumes_basedir }}/config/configuration.yaml"
+    owner: "{{ container_user }}"
+    group: "{{ container_group }}"
+    mode: 0644
+
+
+# SSL Certificates
+- name: Create the ssl folder for Home Assistant
+  file:
+    path: "{{ home_assistant_volumes_basedir }}/config/ssl"
+    owner: "{{ container_user }}"
+    group: "{{ container_group }}"
+    state: directory
+
+- name: Check if public certificate exists
+  stat:
+    path: "{{ home_assistant_volumes_basedir }}/config/ssl/fullchain.pem"
+  register: public_certificate
+
+- name: Check if private key exists
+  stat:
+    path: "{{ home_assistant_volumes_basedir }}/config/ssl/privkey.pem"
+  register: private_key
+
+- block:
+  - name: Generate a self-signed private key
+    community.crypto.openssl_privatekey:
+      path: "{{ home_assistant_volumes_basedir }}/config/ssl/privkey.pem"
+      size: 4096
+      mode: 0600
+      type: RSA
+      state: present
+
+  - name: Create certificate signing request (CSR) for self-signed certificate
+    community.crypto.openssl_csr_pipe:
+      privatekey_path: "{{ home_assistant_volumes_basedir }}/config/ssl/privkey.pem"
+      common_name: "{{ inventory_hostname }}"
+      organization_name: "{{ cert_organization_name }}"
+    register: csr
+
+  - name: Generate a self-signed SSL/TLS certificate (valid for 10 years)
+    community.crypto.x509_certificate:
+      path: "{{ home_assistant_volumes_basedir }}/config/ssl/fullchain.pem"
+      privatekey_path: "{{ home_assistant_volumes_basedir }}/config/ssl/privkey.pem"
+      csr_content: "{{ csr.csr }}"
+      provider: selfsigned
+      selfsigned_not_after: "+3650d"
+      mode: 0644
+
+  when: (not public_certificate.stat.exists) or (not private_key.stat.exists)
 
 
 # For reference, this is the docker-compose.yml we are trying to recreate
@@ -75,13 +130,13 @@
     container_image: "ghcr.io/home-assistant/home-assistant:{{ home_assistant_version }}"
     container_run_args: >-
       --rm
-      -p 8123:8123/tcp
+      -p {{ home_assistant_port }}:{{ home_assistant_port }}/tcp
       -v "{{ home_assistant_volumes_basedir }}/config:/config:Z"
       --tz local
       --device /dev/ttyACM0 --group-add keep-groups
       --hostname="{{ inventory_hostname }}"
     container_firewall_ports:
-      - '8123/tcp'
+      - "{{ home_assistant_port }}/tcp"
 
   import_role:
     name: podman_container

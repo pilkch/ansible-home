@@ -1,0 +1,28 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+homeassistant:
+
+  # Name of the location where Home Assistant is running
+  name: Home
+
+  # Location required to calculate the time the sun rises and sets
+  #latitude: !secret latitude_home
+  #longitude: !secret longitude_home
+  #elevation: 322
+
+  # C for Celcius, F for Fahrenheit
+  temperature_unit: C
+  unit_system: metric
+
+  # Pick yours from here: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  time_zone: {{ home_assistant_timezone }}
+
+http:
+  base_url: https://{{ home_assistant_fqdn }}
+
+  server_port: {{ home_assistant_port }}
+
+  ssl_certificate: /config/ssl/fullchain.pem
+  ssl_key: /config/ssl/privkey.pem
+  login_attempts_threshold: 20
