@@ -8,4 +8,9 @@ home_assistant_fqdn: "{{ inventory_hostname }}"
 
 home_assistant_port: 8443
 
+home_assistant_country_code: AU
 home_assistant_timezone: Australia/Sydney
+home_assistant_location_latitude: -33.86778
+home_assistant_location_longitude: 151.21000
+home_assistant_location_elevation: 30
+home_assistant_currency: AUD
