@@ -43,7 +43,7 @@ ansible-playbook -i inventories/network_home.ini -l homeassistant.network.home -
 ansible-playbook -i inventories/network_home.ini -l chris_linux_computer -K playbooks/setup-developer.yml
 ```
 
-## Debugging
+## Debugging Podman Containers
 
 Show the output of a user container:
 ```bash
@@ -66,11 +66,22 @@ Show the output of a user service:
 journalctl --user -f -u homeassistant-container
 ```
 
-Debugging Home Assistant confguration changes:
+Debugging Home Assistant configuration changes:
 ```bash
 systemctl --user restart homeassistant-container
 tail -F srv/homeassistant/config/home-assistant.log
 ```
+
+## Home Assistant Administration
+
+Reset Home Assistant user password by execing into the container, changing the password, exiting and restarting the container:
+```bash
+podman exec -ti homeassistant /bin/bash
+$ hass --script auth --config /config change_password  chris mytemporarypassword
+$ exit
+systemctl --user restart homeassistant-container
+```
+Then log in via the web interface and change it to a real password (This ensures that the real password is not added to the bash history, even temporarily).
 
 ## Notes
 
