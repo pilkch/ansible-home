@@ -1,3 +1,5 @@
 ---
+# Gitlab
+gitlab_version: 16.4.2
 # Home Assistant
 home_assistant_version: 2023.9

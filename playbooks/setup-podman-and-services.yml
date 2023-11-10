@@ -1,0 +1,12 @@
+---
+- hosts: podman
+  roles:
+    - podman
+
+- hosts: gitlab
+  roles:
+    - podman_gitlab
+
+- hosts: homeassistant
+  roles:
+    - podman_home_assistant

@@ -12,11 +12,11 @@ git_config_user_name: "<your name here>"
 ```
 2. Create or edit a vault for each host which needs the git certificate and key
 ```bash
-ansible-vault create host_vars/myhost/git_vault.yml
+ansible-vault create host_vars/myhost/vault.yml
 ```
 OR
 ```bash
-ansible-vault edit host_vars/myhost/git_vault.yml
+ansible-vault edit host_vars/myhost/vault.yml
 ```
 3. Add the certificate and private keys as variables:
 ```yaml
@@ -40,14 +40,28 @@ ansible-playbook -i inventories/network_home.ini -l homeassistant.network.home -
 ```
 
 ```bash
+ansible-playbook -i inventories/network_home.ini -l homeassistant.network.home -K playbooks/setup-podman-and-services.yml
+ansible-playbook -i inventories/network_home.ini -l chris_linux_computer -K playbooks/setup-podman-and-services.yml
+```
+
+```bash
 ansible-playbook -i inventories/network_home.ini -l chris_linux_computer -K playbooks/setup-developer.yml
 ```
 
 ## Debugging Podman Containers
 
+Check the service file that was generated and check that podman is being called correctly:
+```bash
+cat .config/systemd/user/homeassistant-container.service
+```
+
 Show the output of a user container:
 ```bash
 journalctl -f
+```
+OR
+```bash
+podman logs -f gitlab
 ```
 
 Start, stop, or check the status a user container:
@@ -55,7 +69,7 @@ Start, stop, or check the status a user container:
 systemctl --user start/stop/status homeassistant-container
 ```
 
-Check the groups that a user is in (Note: dialot for access to /dev/ttyUSB0 or /dev/ttyACM0):
+Check the groups that a user is in (Note: dialout for access to /dev/ttyUSB0 or /dev/ttyACM0):
 ```bash
 $ groups
 homeassistant wheel dialout
@@ -72,12 +86,22 @@ systemctl --user restart homeassistant-container
 tail -F srv/homeassistant/config/home-assistant.log
 ```
 
+## Gitlab Administration
+
+Get the initial root (Administrator) user password for the gitlab web interface (As the gitlab container user):
+```bash
+$ podman exec -it gitlab grep 'Password:' /etc/gitlab/initial_root_password
+Password: e3bvA0wciJup5epRQKX31pDE+H6hp3dZBY8llbpF3bY=
+```
+
+**NOTE: When updating the gitlab version remember to upgrade between the official upgrade paths as documented in roles/podman_gitlab/defaults/main.yml**
+
 ## Home Assistant Administration
 
 Reset Home Assistant user password by execing into the container, changing the password, exiting and restarting the container:
 ```bash
 podman exec -ti homeassistant /bin/bash
-$ hass --script auth --config /config change_password  chris mytemporarypassword
+$ hass --script auth --config /config change_password chris mytemporarypassword
 $ exit
 systemctl --user restart homeassistant-container
 ```

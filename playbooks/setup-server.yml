@@ -2,12 +2,5 @@
 - hosts: server
   roles:
     - fedora_common
+    #- ntp
     - update_firmware
-
-- hosts: server:&podman
-  roles:
-    - podman
-
-- hosts: server:&homeassistant
-  roles:
-    - podman_home_assistant

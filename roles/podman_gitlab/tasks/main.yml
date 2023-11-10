@@ -1,0 +1,149 @@
+---
+- set_fact:
+    gitlab_volumes_basedir: "/home/{{ gitlab_container_user }}/srv/gitlab"
+
+# User and group
+- block:
+  - name: "Create gitlab group"
+    group:
+      name: "{{ gitlab_container_group }}"
+
+  - name: "Create gitlab user"
+    user:
+      name: "{{ gitlab_container_user }}"
+      password: "{{ gitlab_container_user_password | password_hash('sha512') }}"
+      update_password: always
+      groups: "{{ gitlab_container_group }}"
+      append: yes
+
+  become: true
+
+
+# Create folders
+- name: Create the config, logs, and data folders for Gitlab
+  file:
+    path: "{{ gitlab_volumes_basedir }}/{{ item }}"
+    owner: "{{ gitlab_container_user }}"
+    group: "{{ gitlab_container_group }}"
+    state: directory
+  with_items:
+    - config
+    - logs
+    - data
+  become: true
+  become_user: "{{ gitlab_container_user }}"
+
+
+# SSL Certificates
+- block:
+  - name: Create the ssl folder for Gitlab
+    file:
+      path: "{{ gitlab_volumes_basedir }}/config/ssl"
+      owner: "{{ gitlab_container_user }}"
+      group: "{{ gitlab_container_group }}"
+      state: directory
+
+  - name: Check if public certificate exists
+    stat:
+      path: "{{ gitlab_volumes_basedir }}/config/ssl/{{ gitlab_fqdn }}.crt"
+    register: public_certificate
+
+  - name: Check if private key exists
+    stat:
+      path: "{{ gitlab_volumes_basedir }}/config/ssl/{{ gitlab_fqdn }}.key"
+    register: private_key
+
+  - block:
+    - name: Generate a self-signed private key
+      community.crypto.openssl_privatekey:
+        path: "{{ gitlab_volumes_basedir }}/config/ssl/{{ gitlab_fqdn }}.key"
+        size: 4096
+        mode: 0600
+        type: RSA
+        state: present
+
+    - name: Create certificate signing request (CSR) for self-signed certificate
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: "{{ gitlab_volumes_basedir }}/config/ssl/{{ gitlab_fqdn }}.key"
+        common_name: "{{ gitlab_fqdn }}"
+        organization_name: "{{ gitlab_cert_organization_name }}"
+      register: csr
+
+    - name: Generate a self-signed SSL/TLS certificate (valid for 10 years)
+      community.crypto.x509_certificate:
+        path: "{{ gitlab_volumes_basedir }}/config/ssl/{{ gitlab_fqdn }}.crt"
+        privatekey_path: "{{ gitlab_volumes_basedir }}/config/ssl/{{ gitlab_fqdn }}.key"
+        csr_content: "{{ csr.csr }}"
+        provider: selfsigned
+        selfsigned_not_after: "+3650d"
+        mode: 0644
+
+    when: (not public_certificate.stat.exists) or (not private_key.stat.exists)
+
+  become: true
+  become_user: "{{ gitlab_container_user }}"
+
+
+# Copy configuration files
+- name: Add Gitlab configuration file
+  ansible.builtin.template:
+    src: gitlab.rb.j2
+    dest: "{{ gitlab_volumes_basedir }}/config/gitlab.rb"
+    owner: "{{ gitlab_container_user }}"
+    group: "{{ gitlab_container_group }}"
+    mode: 0644
+    backup: true
+  become: true
+  become_user: "{{ gitlab_container_user }}"
+
+
+# For reference, this is the docker-compose.yml we are trying to recreate
+#---
+# version: "3.9"
+# services:
+#   gitlab:
+#     image: gitlab/gitlab-ce:16.4.2-ce.0
+#     container_name: gitlab
+#     environment:
+#       - SSL_SELF_SIGNED=true
+#     hostname: gitlab.network.home
+#     ports:
+#       - "2443:2443"
+#       - "2080:80"
+#       - "2022:22"
+#     volumes:
+#       - "/srv/gitlab/config:/etc/gitlab:Z"
+#       - "/srv/gitlab/logs:/var/log/gitlab:Z"
+#       - "/srv/gitlab/data:/var/opt/gitlab:Z"
+#     deploy:
+#       resources:
+#         limits:
+#           memory: 4G
+#     restart: unless-stopped
+
+- name: Create the Gitlab container
+  vars:
+    container_user: "{{ gitlab_container_user }}"
+    container_group: "{{ gitlab_container_group }}"
+    systemd_TimeoutStartSec: 90
+    container_name: gitlab
+    container_image: "docker.io/gitlab/gitlab-ce:{{ gitlab_version }}-ce.0"
+    container_run_args: >-
+      --env 'SSL_SELF_SIGNED=true'
+      -p {{ gitlab_https_port }}:2443/tcp
+      -p 2080:80/tcp
+      -p {{ gitlab_ssh_port }}:22/tcp
+      -v "{{ gitlab_volumes_basedir }}/config:/etc/gitlab:Z"
+      -v "{{ gitlab_volumes_basedir }}/logs:/var/log/gitlab:Z"
+      -v "{{ gitlab_volumes_basedir }}/data:/var/opt/gitlab:Z"
+      -v /etc/localtime:/etc/localtime:ro
+      --hostname="{{ gitlab_fqdn }}"
+      --shm-size 1g
+      --group-add keep-groups
+    container_firewall_ports:
+      - "{{ gitlab_https_port }}/tcp"
+      - "{{ gitlab_ssh_port }}/tcp"
+
+  import_role:
+    name: podman_container
+

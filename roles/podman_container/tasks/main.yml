@@ -56,6 +56,8 @@
     state: directory
     owner: "{{ container_user }}"
     group: "{{ container_group }}"
+  become: true
+  become_user: "{{ container_user }}"
 
 - name: Set systemd runtime dir
   ansible.builtin.set_fact:
@@ -78,6 +80,7 @@
 
   - name: Enable lingering is needed
     ansible.builtin.command: "loginctl enable-linger {{ container_user }}"
+    become: true
     when:
       - not user_lingering.stat.exists
 
@@ -106,8 +109,6 @@
       - service_file is changed 
 
   - name: Ensure service is enabled and {{ _service_systemd_state }}
-    become: true
-    become_user: "{{ container_user }}"
     environment:
       XDG_RUNTIME_DIR: "{{ xdg_runtime_dir }}"
     ansible.builtin.systemd:
@@ -116,6 +117,8 @@
       state: "{{ _service_systemd_state }}"
       enabled: true
       daemon_reload: "{{ service_file is changed }}"
+    become: true
+    become_user: "{{ container_user }}"
 
 
 # Firewall
