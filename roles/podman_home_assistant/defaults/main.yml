@@ -1,8 +1,8 @@
 ---
-container_user: homeassistant
-container_group: homeassistant
+home_assistant_container_user: homeassistant
+home_assistant_container_group: homeassistant
 
-cert_organization_name: "My Organisation"
+home_assistant_cert_organization_name: "My Organisation"
 
 home_assistant_fqdn: "{{ inventory_hostname }}"
 

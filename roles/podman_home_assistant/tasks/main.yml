@@ -1,21 +1,21 @@
 ---
 - set_fact:
-    home_assistant_volumes_basedir: "/home/{{ container_user }}/srv/homeassistant"
+    home_assistant_volumes_basedir: "/home/{{ home_assistant_container_user }}/srv/homeassistant"
 
 # Configuration files
 - name: Create the config folder for Home Assistant
   file:
     path: "{{ home_assistant_volumes_basedir }}/config"
-    owner: "{{ container_user }}"
-    group: "{{ container_group }}"
+    owner: "{{ home_assistant_container_user }}"
+    group: "{{ home_assistant_container_group }}"
     state: directory
 
 - name: Add Home Assistant configuration file
   ansible.builtin.template:
     src: configuration.yaml.j2
     dest: "{{ home_assistant_volumes_basedir }}/config/configuration.yaml"
-    owner: "{{ container_user }}"
-    group: "{{ container_group }}"
+    owner: "{{ home_assistant_container_user }}"
+    group: "{{ home_assistant_container_group }}"
     mode: 0644
 
 
@@ -23,7 +23,7 @@
 - name: Create the ssl folder for Home Assistant
   file:
     path: "{{ home_assistant_volumes_basedir }}/config/ssl"
-    owner: "{{ container_user }}"
+    owner: "{{ home_assistant_container_user }}"
     group: "{{ container_group }}"
     state: directory
 
@@ -49,8 +49,8 @@
   - name: Create certificate signing request (CSR) for self-signed certificate
     community.crypto.openssl_csr_pipe:
       privatekey_path: "{{ home_assistant_volumes_basedir }}/config/ssl/privkey.pem"
-      common_name: "{{ inventory_hostname }}"
-      organization_name: "{{ cert_organization_name }}"
+      common_name: "{{ home_assistant_fqdn }}"
+      organization_name: "{{ home_assistant_cert_organization_name }}"
     register: csr
 
   - name: Generate a self-signed SSL/TLS certificate (valid for 10 years)
@@ -97,7 +97,7 @@
 
 - name: Add the user to the dialout group for accessing /dev/ttyACM0
   user:
-    name: "{{ container_user }}"
+    name: "{{ home_assistant_container_user }}"
     groups: dialout
     append: yes
     create_home: no
@@ -118,13 +118,16 @@
     persistent: true
   become: true
 
+# TODO: Reverse the above setting and try this instead
+# --device-cgroup-rule='c 166:* rmw'
+
 # This line has been removed and replaced with --tz local:
 # -v /etc/localtime:/etc/localtime:ro
 
 - name: Create the Home Assistant container
   vars:
-    container_user: homeassistant
-    container_group: homeassistant
+    container_user: "{{ home_assistant_container_user }}"
+    container_group: "{{ home_assistant_container_group }}"
     systemd_TimeoutStartSec: 90
     container_name: homeassistant
     container_image: "ghcr.io/home-assistant/home-assistant:{{ home_assistant_version }}"
@@ -134,7 +137,7 @@
       -v "{{ home_assistant_volumes_basedir }}/config:/config:Z"
       --tz local
       --device /dev/ttyACM0 --group-add keep-groups
-      --hostname="{{ inventory_hostname }}"
+      --hostname="{{ home_assistant_fqdn }}"
     container_firewall_ports:
       - "{{ home_assistant_port }}/tcp"
 
