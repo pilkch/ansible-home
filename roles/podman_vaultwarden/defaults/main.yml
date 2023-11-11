@@ -1,0 +1,11 @@
+---
+vaultwarden_version: 1.29.2
+
+vaultwarden_container_user: vaultwarden
+vaultwarden_container_group: vaultwarden
+
+vaultwarden_cert_organization_name: "My Organisation"
+
+vaultwarden_fqdn: "vaultwarden.network.home"
+
+vaultwarden_https_port: 4443

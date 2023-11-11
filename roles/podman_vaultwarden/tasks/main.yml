@@ -1,0 +1,124 @@
+---
+- set_fact:
+    vaultwarden_volumes_basedir: "/home/{{ vaultwarden_container_user }}/srv/vaultwarden"
+
+# User and group
+- block:
+  - name: "Create vaultwarden group"
+    group:
+      name: "{{ vaultwarden_container_group }}"
+
+  - name: "Create vaultwarden user"
+    user:
+      name: "{{ vaultwarden_container_user }}"
+      password: "{{ vaultwarden_container_user_password | password_hash('sha512') }}"
+      update_password: always
+      groups: "{{ vaultwarden_container_group }}"
+      append: yes
+
+  become: true
+
+
+# Create folders
+- name: Create the ssl and data folders for Vaultwarden
+  file:
+    path: "{{ vaultwarden_volumes_basedir }}/{{ item }}"
+    owner: "{{ vaultwarden_container_user }}"
+    group: "{{ vaultwarden_container_group }}"
+    state: directory
+  with_items:
+    - ssl
+    - data
+  become: true
+  become_user: "{{ vaultwarden_container_user }}"
+
+
+# SSL Certificates
+- block:
+  - name: Check if public certificate exists
+    stat:
+      path: "{{ vaultwarden_volumes_basedir }}/ssl/{{ vaultwarden_fqdn }}.crt"
+    register: public_certificate
+
+  - name: Check if private key exists
+    stat:
+      path: "{{ vaultwarden_volumes_basedir }}/ssl/{{ vaultwarden_fqdn }}.key"
+    register: private_key
+
+  - block:
+    - name: Generate a self-signed private key
+      community.crypto.openssl_privatekey:
+        path: "{{ vaultwarden_volumes_basedir }}/ssl/{{ vaultwarden_fqdn }}.key"
+        size: 4096
+        mode: 0600
+        type: RSA
+        state: present
+
+    - name: Create certificate signing request (CSR) for self-signed certificate
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: "{{ vaultwarden_volumes_basedir }}/ssl/{{ vaultwarden_fqdn }}.key"
+        common_name: "{{ vaultwarden_fqdn }}"
+        organization_name: "{{ vaultwarden_cert_organization_name }}"
+      register: csr
+
+    - name: Generate a self-signed SSL/TLS certificate (valid for 10 years)
+      community.crypto.x509_certificate:
+        path: "{{ vaultwarden_volumes_basedir }}/ssl/{{ vaultwarden_fqdn }}.crt"
+        privatekey_path: "{{ vaultwarden_volumes_basedir }}/ssl/{{ vaultwarden_fqdn }}.key"
+        csr_content: "{{ csr.csr }}"
+        provider: selfsigned
+        selfsigned_not_after: "+3650d"
+        mode: 0644
+
+    when: (not public_certificate.stat.exists) or (not private_key.stat.exists)
+
+  become: true
+  become_user: "{{ vaultwarden_container_user }}"
+
+
+# Copy configuration files
+- name: Add Vaultwarden configuration file
+  ansible.builtin.template:
+    src: config.json.j2
+    dest: "{{ vaultwarden_volumes_basedir }}/data/config.json"
+    owner: "{{ vaultwarden_container_user }}"
+    group: "{{ vaultwarden_container_group }}"
+    mode: 0644
+    backup: true
+  become: true
+  become_user: "{{ vaultwarden_container_user }}"
+
+
+# For reference, this is the docker run command that we are trying to recreate
+# sudo docker run -d --name vaultwarden \
+#   -e ROCKET_TLS='{certs="/ssl/vaultwarden.crt",key="/ssl/vaultwarden.key"}' \
+#   -e DOMAIN=https://vaultwarden.network.home:4443 \
+#   -e ADMIN_TOKEN=hw0S37F9VX4jHywcRlQvYf6FZtJkRswfpLcW97rpnZ6a7Choc7k1HAcFsQe/5X1l \
+#   -v /srv/vaultwarden/ssl/:/ssl/:Z \
+#   -v /srv/vaultwarden/data/:/data/:Z \
+#   --publish 4443:80 \
+#   vaultwarden/server:1.28.1-alpine
+
+- name: Create the Vaultwarden container
+  vars:
+    container_user: "{{ vaultwarden_container_user }}"
+    container_group: "{{ vaultwarden_container_group }}"
+    systemd_TimeoutStartSec: 90
+    container_name: vaultwarden
+    container_image: "docker.io/vaultwarden/server:{{ vaultwarden_version }}-alpine"
+    container_run_args: >-
+      --env ROCKET_TLS='{certs="/ssl/{{ vaultwarden_fqdn }}.crt",key="/ssl/{{ vaultwarden_fqdn }}.key"}'
+      --env DOMAIN=https://{{ vaultwarden_fqdn }}:{{ vaultwarden_https_port }}
+      --env ADMIN_TOKEN={{ vaultwarden_admin_token }}
+      -p {{ vaultwarden_https_port }}:80/tcp
+      -v "{{ vaultwarden_volumes_basedir }}/ssl:/ssl:Z"
+      -v "{{ vaultwarden_volumes_basedir }}/data:/data:Z"
+      -v /etc/localtime:/etc/localtime:ro
+      --hostname="{{ vaultwarden_fqdn }}"
+      --shm-size 256m
+      --group-add keep-groups
+    container_firewall_ports:
+      - "{{ vaultwarden_https_port }}/tcp"
+
+  import_role:
+    name: podman_container

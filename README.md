@@ -86,6 +86,23 @@ systemctl --user restart homeassistant-container
 tail -F srv/homeassistant/config/home-assistant.log
 ```
 
+## General Podman Container Administration
+
+When upgrading the version or changing the settings of a container you can just run the `playbooks/setup-podman-and-services.yml` playbook, but I prefer to stop the container manually and perform a backup before redeploying it, for example:
+```bash
+ssh vaultwarden@<ip>
+$ systemctl --user stop vaultwarden-container
+$ (cd srv && zip -r vaultwarden20231104.zip ./vaultwarden)
+```
+Now you can run the `playbooks/setup-podman-and-services.yml` playbook to upgrade the version or update the settings.
+
+## Vaultwarden Administration
+
+When the admin page is enabled you can log in here to change the configuration:
+```
+https://vaultwarden.network.home:4443/admin
+```
+
 ## Gitlab Administration
 
 Get the initial root (Administrator) user password for the gitlab web interface (As the gitlab container user):
