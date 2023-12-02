@@ -7,3 +7,25 @@
   file:
     path: "{{ ansible_env.HOME }}/Documents/dev"
     state: directory
+
+
+# Client side of the fileserver.network.home samba share
+# We just add it to all developer machines
+- block:
+  - name: Create the mount folder
+    file:
+      path: /data
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+      mode: '0750'
+      state: directory
+
+  - name: Mount network share
+    ansible.posix.mount:
+      src: "//{{ hostvars['fileserver.network.home']['ansible_default_ipv4']['address'] }}/data1"
+      path: /data
+      fstype: cifs
+      opts: "rw,vers=3,file_mode=0600,dir_mode=0700,username={{ fileserver_network_home_samba_username }},password={{ fileserver_network_home_samba_password }},uid={{ ansible_user }},gid={{ ansible_user }}"
+      state: mounted
+
+  become: true

@@ -1,4 +1,7 @@
 ---
+fileserver_network_home_samba_username: replacethiswithyourusername
+fileserver_network_home_samba_password: replacethiswithyourpassword
+
 # Gitlab
 gitlab_version: 16.4.2
 
