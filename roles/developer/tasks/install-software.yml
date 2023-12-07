@@ -3,11 +3,12 @@
   package:
     name:
       - curl
+      - flatpak
       - jq
-      - nettools
+      - net-tools
       - strace
+      - telnet
       - wget
-      - xmllint
     state: latest
   become: true
 
@@ -20,7 +21,6 @@
       - valgrind
       - make
       - cmake
-      - afl++
     state: latest
   become: true
 
@@ -35,10 +35,31 @@
       - SDL2_mixer-devel
       - SDL2_net-devel
       - SDL2_ttf-devel
-      - mesa-libGL1-devel
-      - mesa-libGLU1-devel
       - GLee-devel
       - freetype-devel
       - libxml2-devel
     state: latest
   become: true
+
+
+- name: Add the flathub flatpak repository remote to the user installation
+  community.general.flatpak_remote:
+    name: flathub
+    state: present
+    flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
+    method: user
+
+- name: Install developer flatpak tools
+  community.general.flatpak:
+    name:
+      - com.obsproject.Studio
+      - com.vscodium.codium
+      - org.audacityteam.Audacity
+      - org.gimp.GIMP
+      - org.gnome.gedit
+      - org.inkscape.Inkscape
+      - org.mozilla.firefox
+      - org.mozilla.Thunderbird
+      - org.videolan.VLC
+    state: present
+    method: user
