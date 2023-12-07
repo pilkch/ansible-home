@@ -10,4 +10,4 @@ gitlab_version: 16.4.2
 vaultwarden_admin_token: base64tokengoeshereRlQvYf6FZtJkRswfpLcW97rpnZ6a7Choc7k1HAcFsQe/5X1l
 
 # Home Assistant
-home_assistant_version: 2023.9
+home_assistant_version: 2023.10.5
