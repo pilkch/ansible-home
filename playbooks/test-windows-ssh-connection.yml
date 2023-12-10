@@ -1,0 +1,7 @@
+# Test the SSH connection to a Windows host
+---
+- hosts: windows
+  tasks:
+    - name: Test connection
+      win_shell: |
+        get-host
