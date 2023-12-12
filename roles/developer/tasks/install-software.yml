@@ -55,11 +55,6 @@
       - com.obsproject.Studio
       - com.vscodium.codium
       - org.audacityteam.Audacity
-      - org.gimp.GIMP
-      - org.gnome.gedit
       - org.inkscape.Inkscape
-      - org.mozilla.firefox
-      - org.mozilla.Thunderbird
-      - org.videolan.VLC
     state: present
     method: user

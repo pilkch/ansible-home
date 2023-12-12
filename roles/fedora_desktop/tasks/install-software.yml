@@ -1,0 +1,30 @@
+---
+- name: Add the flathub flatpak repository remote to the user installation
+  community.general.flatpak_remote:
+    name: flathub
+    state: present
+    flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
+    method: user
+
+- name: Install flatpak software
+  community.general.flatpak:
+    name:
+      - org.gimp.GIMP
+      - org.gnome.gedit
+      - org.mozilla.firefox
+      - org.darktable.Darktable
+      - org.gnome.Rhythmbox3
+      - org.mozilla.Thunderbird
+      - org.videolan.VLC
+    state: present
+    method: user
+
+# TODO: When Selfless Heros provides a flatpak add it here
+- name: Install flatpak games
+  community.general.flatpak:
+    name:
+      - com.valvesoftware.Steam
+      - com.endlessnetwork.passage
+      - com.endlessnetwork.aqueducts
+    state: present
+    method: user
