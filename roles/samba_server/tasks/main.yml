@@ -1,0 +1,67 @@
+---
+- name: Install samba packages
+  package:
+    name:
+      - samba
+    state: latest
+  become: true
+
+- name: Ensure Samba is running and set to start at boot
+  service:
+    name: smb
+    state: started
+    enabled: true
+  become: true
+
+
+- block:
+  - name: shell - create samba users
+    ansible.builtin.shell: >
+      set -e -o pipefail
+      && (pdbedit --user={{ samba_user }} 2>&1 > /dev/null)
+      || (echo '{{ samba_password }}'; echo '{{ samba_password }}')
+      | smbpasswd -s -a {{ samba_user }}
+    args:
+      executable: /bin/bash
+    register: samba_create_users
+    changed_when: "'Added user' in samba_create_users.stdout"
+    no_log: true
+    become: true
+
+  - name: shell - set samba passwords correctly
+    ansible.builtin.shell: >
+      set -e -o pipefail
+      && (smbclient -U {{ samba_user }}%{{ samba_password }} -L 127.0.0.1 2>&1 > /dev/null)
+      || (echo '{{ samba_password }}'; echo '{{ samba_password }}')
+      | smbpasswd {{ samba_user }}
+    args:
+      executable: /bin/bash
+    register: samba_verify_users
+    changed_when: "'New SMB password' in samba_verify_users.stdout"
+    no_log: true
+    become: true
+
+  - name: Enable samba user
+    shell: "smbpasswd -e {{ samba_user }}"
+    become: true
+
+
+- name: Update samba configuration
+  template:
+    src: smb.conf.j2
+    dest: /etc/samba/smb.conf
+    owner: root
+    group: root
+    mode: 0644
+    backup: true
+  become: true
+  notify:
+    - Restart smb service
+
+- name: Enable samba ports in firewall
+  ansible.posix.firewalld:
+    service: samba
+    state: enabled
+    immediate: true
+    permanent: true
+  become: true

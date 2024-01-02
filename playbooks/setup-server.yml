@@ -4,3 +4,10 @@
     - fedora_common
     #- ntp
     - update_firmware
+
+- hosts: server:&sambaserver
+  roles:
+    - samba_server
+  vars:
+    samba_user: "{{ fileserver_network_home_samba_username }}"
+    samba_password: "{{ fileserver_network_home_samba_password }}"
