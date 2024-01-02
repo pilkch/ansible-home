@@ -6,9 +6,11 @@
     flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
     method: user
 
+# NOTE: ffmpeg is for firefox
 - name: Install flatpak software
   community.general.flatpak:
     name:
+      - org.freedesktop.Platform.ffmpeg-full
       - org.gimp.GIMP
       - org.gnome.gedit
       - org.mozilla.firefox
