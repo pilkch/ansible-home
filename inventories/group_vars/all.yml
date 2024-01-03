@@ -1,4 +1,5 @@
 ---
+fileserver_network_home_samba_folder: /data1
 fileserver_network_home_samba_username: replacethiswithyourusername
 fileserver_network_home_samba_password: replacethiswithyourpassword
 

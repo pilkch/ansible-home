@@ -3,6 +3,7 @@
   package:
     name:
       - samba
+      - policycoreutils-python-utils
     state: latest
   become: true
 
@@ -13,7 +14,7 @@
     enabled: true
   become: true
 
-
+# Set up the samba user
 - block:
   - name: shell - create samba users
     ansible.builtin.shell: >
@@ -45,6 +46,31 @@
     shell: "smbpasswd -e {{ samba_user }}"
     become: true
 
+# Set up the permissions on the samba folder
+# NOTE: This folder must already exist, it could be mounted from a second drive, a zfs/btrfs array, etc.
+# https://docs.fedoraproject.org/en-US/quick-docs/samba/
+- block:
+  - name: Change folder owner
+    file:
+      state: directory
+      path: "{{ samba_folder }}"
+      owner: "{{ samba_user }}"
+      group: "{{ samba_user }}"
+
+  # semanage fcontext --add --type "samba_share_t" "/data1(/.*)?"
+  - name: Allow sharing the folder
+    community.general.sefcontext:
+      path: "{{ samba_folder }}(/.*)?"
+      setype: samba_share_t
+      state: present
+
+  # restorecon -R ~/share
+  - name: Apply new SELinux file context to filesystem
+    ansible.builtin.command: "restorecon -R {{ samba_folder }}"
+
+  become: true
+
+# NOTE: The share also seems to need at least one file within it or trying to read it from the client will fail with a lack of permissions
 
 - name: Update samba configuration
   template:
