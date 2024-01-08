@@ -1,4 +1,12 @@
 ---
+# NOTE: libva-utils is for ffmpeg
+- name: Install libva-utils for ffmpeg
+  package:
+    name:
+      - libva-utils
+    state: latest
+  become: true
+
 - name: Add the flathub flatpak repository remote to the user installation
   community.general.flatpak_remote:
     name: flathub
@@ -10,7 +18,7 @@
 - name: Install flatpak software
   community.general.flatpak:
     name:
-      - org.freedesktop.Platform.ffmpeg-full
+      - runtime/org.freedesktop.Platform.ffmpeg-full/x86_64/23.08 # NOTE: There are multiple versions and we have to pick a specific version
       - org.gimp.GIMP
       - org.gnome.gedit
       - org.mozilla.firefox
