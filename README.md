@@ -44,10 +44,6 @@ ansible-playbook -i inventories/network_home.ini -l homeassistant.network.home -
 ansible-playbook -i inventories/network_home.ini -l chris_linux_computer -K playbooks/setup-podman-and-services.yml
 ```
 
-```bash
-ansible-playbook -i inventories/network_home.ini -l chris_linux_computer -K playbooks/setup-developer.yml
-```
-
 ## Debugging Podman Containers
 
 Check the service file that was generated and check that podman is being called correctly:

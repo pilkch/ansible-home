@@ -1,4 +1,14 @@
 ---
+- hosts: linux
+  roles:
+    - fedora_common
+    #- ntp
+    - update_firmware
+
+- hosts: developer
+  roles:
+    - developer
+
 - hosts: desktop
   roles:
     - fedora_desktop

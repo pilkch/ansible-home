@@ -1,7 +1,0 @@
----
-- hosts: developer
-  roles:
-    - fedora_common
-    #- ntp
-    - update_firmware
-    - developer

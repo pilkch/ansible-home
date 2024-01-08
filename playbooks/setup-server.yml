@@ -5,7 +5,7 @@
     #- ntp
     - update_firmware
 
-- hosts: server:&sambaserver
+- hosts: sambaserver
   roles:
     - samba_server
   vars:
