@@ -3,6 +3,8 @@ default_config:
 
 automation: !include automations.yaml
 
+scene: !include scenes.yaml
+
 homeassistant:
   internal_url: https://{{ home_assistant_fqdn }}:{{ home_assistant_port }}/
   external_url: https://{{ home_assistant_fqdn }}:{{ home_assistant_port }}/
@@ -30,3 +32,7 @@ http:
   ssl_certificate: /config/ssl/fullchain.pem
   ssl_key: /config/ssl/privkey.pem
   login_attempts_threshold: 20
+
+api:
+
+websocket_api:
