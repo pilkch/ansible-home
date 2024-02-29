@@ -8,6 +8,7 @@
 - hosts: developer
   roles:
     - developer
+    - vscodium
 
 - hosts: desktop
   roles:

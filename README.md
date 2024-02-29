@@ -2,6 +2,16 @@
 
 Ansible roles for deploying my home computers and servers.
 
+## Initial State
+
+Generally these playbooks require that the target physical or virtual machine has:
+1. Fedora or Fedora Server installed
+2. Has a user for ansible to use
+3. The user is in the wheel group
+4. IP address has been set up
+5. openssh has been enabled and allowed through the firewall
+5. SSH keys have been set up for the ansible controller to SSH to the host
+
 ## Setup for Git Developer Roles
 
 1. Set your git email and user name in inventories/group_vars/developer.yml
@@ -33,6 +43,10 @@ git_private_key: |
 ```
 
 ## Usage Examples
+
+```bash
+ansible-playbook -i inventories/network_home.ini -l chris_linux_computer -K playbooks/setup-desktop.yml
+```
 
 ```bash
 ansible-playbook -i inventories/network_home.ini -l fileserver.network.home -K playbooks/setup-server.yml

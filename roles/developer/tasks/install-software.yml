@@ -53,7 +53,6 @@
   community.general.flatpak:
     name:
       - com.obsproject.Studio
-      - com.vscodium.codium
       - org.audacityteam.Audacity
       - org.inkscape.Inkscape
     state: present

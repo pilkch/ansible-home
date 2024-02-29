@@ -1,0 +1,25 @@
+---
+- block:
+  - name: Copy vscodium gpg key
+    ansible.builtin.copy:
+      src: vscodium-pub.gpg
+      dest: /etc/pki/rpm-gpg/
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Copy vscodium yum repo
+    ansible.builtin.copy:
+      src: vscodium.repo
+      dest: /etc/yum.repos.d/
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Install vscodium
+    package:
+      name:
+        - codium
+      state: latest
+
+  become: true
