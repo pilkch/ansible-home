@@ -1,4 +1,6 @@
 ---
+- include_tasks: setup-bash.yml
+
 - include_tasks: install-software.yml
 
 - include_tasks: setup-git.yml
