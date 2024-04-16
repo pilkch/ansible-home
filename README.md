@@ -133,7 +133,3 @@ $ exit
 systemctl --user restart homeassistant-container
 ```
 Then log in via the web interface and change it to a real password (This ensures that the real password is not added to the bash history, even temporarily).
-
-## Notes
-
-The ansible doesn't deploy the docker compose files for Gitlab, vaultwarden, etc.
