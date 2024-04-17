@@ -1,0 +1,45 @@
+---
+- block:
+  - name: Copy docker gpg key
+    ansible.builtin.copy:
+      src: RPM-GPG-KEY-docker-ce
+      dest: /etc/pki/rpm-gpg/
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Add docker repository
+    ansible.builtin.copy:
+      src: docker-ce.repo
+      dest: /etc/yum.repos.d/
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Ensure runc is not installed
+    package:
+      name: runc
+      state: absent
+
+  - name: Install Docker packages
+    package:
+      name:
+        - container-selinux
+        - docker-ce
+        - docker-buildx-plugin
+      state: latest
+    notify: Restart docker
+
+  - name: Ensure /etc/docker/ directory exists
+    file:
+      path: /etc/docker
+      state: directory
+      mode: 0755
+
+  - name: Ensure Docker is started and enabled at boot
+    service:
+      name: docker
+      state: started
+      enabled: true
+
+  become: true

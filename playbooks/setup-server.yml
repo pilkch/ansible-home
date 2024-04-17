@@ -5,6 +5,10 @@
     #- ntp
     - update_firmware
 
+- hosts: gitlab_runner
+  roles:
+    - gitlab_runner
+
 - hosts: sambaserver
   roles:
     - samba_server
