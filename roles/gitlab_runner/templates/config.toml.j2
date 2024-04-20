@@ -1,0 +1,17 @@
+concurrent = 4
+
+[[runners]]
+  name = "cpp-docker"
+  url = "{{ gitlab_url }}"
+  token = "{{ gitlab_runner_executor_token }}"
+  limit = 0
+  executor = "docker"
+  builds_dir = ""
+  [runners.docker]
+    tls-ca-file = "/etc/gitlab-runner/certs/{{ gitlab_fqdn }}.crt"
+    host = ""
+    image = "{{ gitlab_runner_executor_docker_image }}"
+    privileged = false
+    disable_cache = false
+    cache_dir = ""
+    volumes = ["/cache", "/etc/gitlab-runner/certs/{{ gitlab_fqdn }}.crt:/etc/gitlab-runner/certs/{{ gitlab_fqdn }}.crt:ro"]

@@ -1,0 +1,35 @@
+---
+- block:
+  - name: Copy gitlab-runner config.toml
+    template:
+      src: config.toml.j2
+      dest: /srv/gitlab-runner/config/config.toml
+      owner: root
+      group: root
+      mode: 770
+
+  - name: Copy gitlab-runner self-signed certificate
+    ansible.builtin.copy:
+      src: "{{ gitlab_fqdn }}.crt"
+      dest: /srv/gitlab-runner/certs/
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Stop gitlab-runner container
+    shell: docker stop gitlab-runner
+    ignore_errors: true
+
+  - name: Remove gitlab-runner container
+    shell: docker rm gitlab-runner
+    ignore_errors: true
+
+  - name: Start gitlab-runner container
+    shell: "docker run -d --name gitlab-runner --restart always \
+      -v /srv/gitlab-runner/config:/etc/gitlab-runner:Z \
+      -v /srv/gitlab-runner/certs/{{ gitlab_fqdn }}.crt:/etc/gitlab-runner/certs/{{ gitlab_fqdn }}.crt:Z \
+      -v /var/run/docker.sock:/var/run/docker.sock:Z \
+      -e \"CA_CERTIFICATES_PATH=/etc/gitlab-runner/certs/{{ gitlab_fqdn }}.crt\" \
+      gitlab/gitlab-runner:v{{ gitlab_runner_version }}"
+
+  become: true

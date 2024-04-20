@@ -5,6 +5,16 @@ fileserver_network_home_samba_password: replacethiswithyourpassword
 
 # Gitlab
 gitlab_version: 16.4.2
+gitlab_fqdn: replacethiswithyourhostname
+gitlab_https_port: 2443
+gitlab_url: "https://{{ gitlab_fqdn }}:{{ gitlab_https_port }}/"
+gitlab_container_user_password: replacethiswithyoupassword
+
+# Gitlab runner
+gitlab_runner_version: "{{ gitlab_version }}"
+gitlab_runner_executor_name: replacethiswithyourexecutorname
+gitlab_runner_executor_token: replacethiswiththetokenfromgitlab
+gitlab_runner_executor_docker_image: registry.hub.docker.com/library/fedora:latest
 
 # Vaultwarden
 # Generated with `openssl rand -base64 48`
