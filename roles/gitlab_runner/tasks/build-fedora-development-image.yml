@@ -1,0 +1,22 @@
+---
+- block:
+  # Create a Fedora docker image with some development tools already installed
+  - name: Copy Fedora development Dockerfile
+    ansible.builtin.copy:
+      src: Dockerfile-fedora-development
+      dest: /srv/containers/fedora-development/Dockerfile
+      owner: root
+      group: root
+      mode: '0644'
+
+  # Build the Fedora docker image
+  # docker build --tag fedora-development:latest .
+  - name: Build fedora-development:latest image
+    community.docker.docker_image:
+      name: fedora-development:latest
+      build:
+        path: /srv/containers/fedora-development
+      source: build
+      state: present
+
+  become: true

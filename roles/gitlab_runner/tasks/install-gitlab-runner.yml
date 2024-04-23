@@ -7,7 +7,9 @@
       owner: root
       group: root
       mode: 770
+    notify: Restart gitlab-runner container
 
+  # TODO: Move this to an ansible vault
   - name: Copy gitlab-runner self-signed certificate
     ansible.builtin.copy:
       src: "{{ gitlab_fqdn }}.crt"
@@ -15,21 +17,17 @@
       owner: root
       group: root
       mode: '0644'
+    notify: Restart gitlab-runner container
 
-  - name: Stop gitlab-runner container
-    shell: docker stop gitlab-runner
-    ignore_errors: true
-
-  - name: Remove gitlab-runner container
-    shell: docker rm gitlab-runner
-    ignore_errors: true
-
-  - name: Start gitlab-runner container
-    shell: "docker run -d --name gitlab-runner --restart always \
-      -v /srv/gitlab-runner/config:/etc/gitlab-runner:Z \
-      -v /srv/gitlab-runner/certs/{{ gitlab_fqdn }}.crt:/etc/gitlab-runner/certs/{{ gitlab_fqdn }}.crt:Z \
-      -v /var/run/docker.sock:/var/run/docker.sock:Z \
-      -e \"CA_CERTIFICATES_PATH=/etc/gitlab-runner/certs/{{ gitlab_fqdn }}.crt\" \
-      gitlab/gitlab-runner:v{{ gitlab_runner_version }}"
+  # Returns output something like "gitlab/gitlab-runner:v16.4.2"
+  - name: Get gitlab-runner version
+    command: docker inspect --format=\'\{\{\.Config\.Image\}\}\' gitlab-runner
+    register: gitlab_runner_inspect_version
 
   become: true
+
+# NOTE: We use an assert purely as a place holder to check if the gitlab runner version is different and notify the handler 
+- name: Restart gitlab-runner if new version
+  assert: { that: true, quiet: true }
+  when: gitlab_runner_inspect_version.stdout != "gitlab/gitlab-runner:v" + gitlab_runner_version
+  notify: Restart gitlab-runner container

@@ -12,6 +12,7 @@ concurrent = 4
     host = ""
     image = "{{ gitlab_runner_executor_docker_image }}"
     privileged = false
+    pull_policy = "if-not-present"
     disable_cache = false
     cache_dir = ""
     volumes = ["/cache", "/etc/gitlab-runner/certs/{{ gitlab_fqdn }}.crt:/etc/gitlab-runner/certs/{{ gitlab_fqdn }}.crt:ro"]
