@@ -8,6 +8,7 @@
       owner: root
       group: root
       mode: '0644'
+    register: dockerfile_status
 
   # Build the Fedora docker image
   # docker build --tag fedora-development:latest .
@@ -18,5 +19,6 @@
         path: /srv/containers/fedora-development
       source: build
       state: present
+      force_source: "{{ dockerfile_status.changed | default(omit) }}" # HACK: docker_image doesn't have a "state: latest" so we can't ensure it gets rebuilt, so we have to force it to get rebuilt when we know the dockerfile has changed
 
   become: true
