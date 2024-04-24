@@ -1,6 +1,6 @@
 FROM fedora:39
 
-RUN dnf -y update && yum install -y gcc gcc-g++ cmake make gtest-devel ShellCheck && dnf clean all
+RUN dnf -y update && yum install -y gcc gcc-g++ clang cmake make json-c-devel gtest-devel ShellCheck && dnf clean all
 
 WORKDIR /root/gitlab-runner/
 
