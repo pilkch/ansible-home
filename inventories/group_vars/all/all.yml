@@ -1,0 +1,24 @@
+---
+# Samba share
+fileserver_network_home_samba_folder: /data1
+fileserver_network_home_samba_username: chris
+#\\192.168.0.84\data
+
+# Gitlab
+gitlab_version: 16.4.2
+gitlab_fqdn: gitlab.network.home
+gitlab_https_port: 2443
+gitlab_url: "https://{{ gitlab_fqdn }}:{{ gitlab_https_port }}/"
+
+# Gitlab runner
+gitlab_runner_version: "{{ gitlab_version }}"
+gitlab_runner_executor_name: cpp-docker
+gitlab_runner_executor_docker_image: fedora-development:latest
+
+# Home Assistant
+home_assistant_version: 2023.10.5
+# Change these to suit your location
+home_assistant_timezone: Australia/Sydney
+home_assistant_location_latitude: -33.86785000
+home_assistant_location_longitude: 151.20732000
+home_assistant_location_elevation: 40

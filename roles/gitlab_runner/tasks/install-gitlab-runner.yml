@@ -11,9 +11,9 @@
 
   # TODO: Move this to an ansible vault
   - name: Copy gitlab-runner self-signed certificate
-    ansible.builtin.copy:
-      src: "{{ gitlab_fqdn }}.crt"
-      dest: /srv/gitlab-runner/certs/
+    ansible.builtin.template:
+      src: gitlab-server.crt.j2
+      dest: "/srv/gitlab-runner/certs/{{ gitlab_fqdn }}.crt"
       owner: root
       group: root
       mode: '0644'

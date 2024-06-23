@@ -15,15 +15,15 @@
     mode: 0740
 
 - name: Copy the certificate to the host
-  copy:
-    content: '{{ git_certificate }}'
-    dest: "{{ ansible_env.HOME }}/.ssh/github_id_rsa.pub"
+  template:
+    src: id_ed25519-github.pub.j2
+    dest: "{{ ansible_env.HOME }}/.ssh/id_ed25519-github.pub"
     mode: 0644
 
 - name: Copy the private key to the host
-  copy:
-    content: '{{ git_private_key }}'
-    dest: "{{ ansible_env.HOME }}/.ssh/github_id_rsa"
+  template:
+    src: id_ed25519-github.j2
+    dest: "{{ ansible_env.HOME }}/.ssh/id_ed25519-github"
     mode: 0600
   no_log: true
 

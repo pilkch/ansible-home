@@ -36,7 +36,4 @@ gitlab_container_group: gitlab
 
 gitlab_cert_organization_name: "My Organisation"
 
-gitlab_fqdn: "gitlab.network.home"
-
-gitlab_https_port: 2443
 gitlab_ssh_port: 2022

@@ -1,0 +1,37 @@
+---
+# This is an example ansible vault file. Check the README.md for instructions on how to set it up and use it.
+
+git_public_certificate_signature_line: "ssh-ed25519 AAAAChangeMeDlksdfjisdfklnFDNKLSDJ/KXYRM3wN62eLjsdfjkIODSCnkDSJFKLE changeme@email.com"
+git_private_key: |
+  -----BEGIN CERTIFICATE-----
+  changeme
+  -----END CERTIFICATE-----
+
+# Gitlab
+gitlab_container_user_password: changeme
+gitlab_server_certificate: |
+  -----BEGIN CERTIFICATE-----
+  changeme
+  -----END CERTIFICATE-----
+
+# Gitlab runner
+gitlab_runner_executor_token: ChangeMe2mkxDxL3-gVOEPx
+
+# Samba share
+fileserver_network_home_samba_password: changeme
+
+# Vaultwarden
+# Generated with `openssl rand -base64 48`
+vaultwarden_admin_token: ChangeMe000nZ6a7Choc7khw0S37F9VX4jHywcRlQvYf6FZtJk1HAcFsQe/5X1l
+vaultwarden_container_user_password: changeme
+
+# Home Assistant
+home_assistant_ca_bundle_certificate: |
+  -----BEGIN CERTIFICATE-----
+  changeme
+  -----END CERTIFICATE-----
+
+home_assistant_private_key: |
+  -----BEGIN RSA PRIVATE KEY-----
+  changeme
+  -----END RSA PRIVATE KEY-----
