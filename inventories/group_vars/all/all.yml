@@ -5,6 +5,34 @@ fileserver_network_home_samba_username: chris
 #\\192.168.0.84\data
 
 # Gitlab
+#
+# Version Upgrade Warning
+#
+# WARNING: For an existing instance you can't just pick the latest gitlab version and run it,
+# you have to follow the recommanded gitlab upgrade paths, which basically means installing certain intermediate versions
+# that will modify your install user data to work with the new version.
+# Otherwise, if you update from 14.10.5 straight to 16.3.0 for example it may not be able to interpret your data as it is
+# expecting a 15.x.y version of the data. So don't just blindly upgrade, follow the upgrade path set out below.
+#
+# Upgrade Paths
+# https://docs.gitlab.com/ee/update/index.html#upgrade-paths
+#
+# 13.1.11 > 13.8.8 > 13.12.15
+# 14.0.12 > 14.3.6 > 14.9.5 > 14.10.5
+# 15.0.5 > 15.4.6 > 15.11.13
+# 16.1(instances with NPM packages in their Package Registry) > 16.3.7 > latest 16.Y.Z > 16.7.z > 16.11.z
+#
+# What versions are available? This is a quick way to find out:
+# https://hub.docker.com/r/gitlab/gitlab-ce/tags?page=1
+#
+# Upgrade Process
+#
+# As the gitlab container user:
+# systemctl --user stop gitlab-container
+# (cd srv && zip -r gitlab20231101b.zip ./gitlab)
+# <edit the gitlab image version in ansible, making the version jumps above>
+# ansible-playbook -i inventories/network_home.ini -l chris_linux_computer -v -kK playbooks/setup-podman-and-services.yml && date && sleep 600
+# <the sleep is to force waiting before running the next upgrade so that gitlab can get up and running, upgrade anything it needs to and settle down before you run the next upgrade. While you are waiting browse around, make sure your data looks to be present, check the logs to make sure everything is working properly>
 gitlab_version: 16.4.2
 gitlab_fqdn: gitlab.network.home
 gitlab_https_port: 2443
@@ -22,3 +50,8 @@ home_assistant_timezone: Australia/Sydney
 home_assistant_location_latitude: -33.86785000
 home_assistant_location_longitude: 151.20732000
 home_assistant_location_elevation: 40
+
+# Vaultwarden
+# https://github.com/dani-garcia/vaultwarden/releases
+vaultwarden_version: 1.30.5
+vaultwarden_fqdn: vaultwarden.network.home
