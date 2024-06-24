@@ -17,10 +17,8 @@ fileserver_network_home_samba_username: chris
 # Upgrade Paths
 # https://docs.gitlab.com/ee/update/index.html#upgrade-paths
 #
-# 13.1.11 > 13.8.8 > 13.12.15
-# 14.0.12 > 14.3.6 > 14.9.5 > 14.10.5
 # 15.0.5 > 15.4.6 > 15.11.13
-# 16.1(instances with NPM packages in their Package Registry) > 16.3.7 > latest 16.Y.Z > 16.7.z > 16.11.z
+# 16.1 > 16.3.7 > 16.7.7 > 16.11.4
 #
 # What versions are available? This is a quick way to find out:
 # https://hub.docker.com/r/gitlab/gitlab-ce/tags?page=1
@@ -33,7 +31,7 @@ fileserver_network_home_samba_username: chris
 # <edit the gitlab image version in ansible, making the version jumps above>
 # ansible-playbook -i inventories/network_home.ini -l chris_linux_computer -v -kK playbooks/setup-podman-and-services.yml && date && sleep 600
 # <the sleep is to force waiting before running the next upgrade so that gitlab can get up and running, upgrade anything it needs to and settle down before you run the next upgrade. While you are waiting browse around, make sure your data looks to be present, check the logs to make sure everything is working properly>
-gitlab_version: 16.4.2
+gitlab_version: 16.7.7
 gitlab_fqdn: gitlab.network.home
 gitlab_https_port: 2443
 gitlab_url: "https://{{ gitlab_fqdn }}:{{ gitlab_https_port }}/"
@@ -44,7 +42,7 @@ gitlab_runner_executor_name: cpp-docker
 gitlab_runner_executor_docker_image: fedora-development:latest
 
 # Home Assistant
-home_assistant_version: 2023.10.5
+home_assistant_version: 2024.6
 # Change these to suit your location
 home_assistant_timezone: Australia/Sydney
 home_assistant_location_latitude: -33.86785000
