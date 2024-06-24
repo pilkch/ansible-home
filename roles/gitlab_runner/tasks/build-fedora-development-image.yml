@@ -12,9 +12,9 @@
 
   # Build the Fedora docker image
   # docker build --tag fedora-development:latest .
-  - name: Build fedora-development:latest image
+  - name: Build fedora-development image
     community.docker.docker_image:
-      name: fedora-development:latest
+      name: "{{ gitlab_runner_executor_docker_image }}"
       build:
         path: /srv/containers/fedora-development
       source: build

@@ -22,12 +22,21 @@
   # Returns output something like "gitlab/gitlab-runner:v16.4.2"
   - name: Get gitlab-runner version
     command: docker inspect --format=\'\{\{\.Config\.Image\}\}\' gitlab-runner
+    ignore_errors: true
     register: gitlab_runner_inspect_version
 
   become: true
 
-# NOTE: We use an assert purely as a place holder to check if the gitlab runner version is different and notify the handler 
+# NOTE: We use an assert purely as a place holder to check if the gitlab runner was not already running and notify the handler
+- name: Start gitlab-runner if it isn't running
+  assert: { that: true, quiet: true }
+  changed_when: true
+  when: gitlab_runner_inspect_version.rc != 0
+  notify: Restart gitlab-runner container
+
+# NOTE: We use an assert purely as a place holder to check if the gitlab runner version is different and notify the handler
 - name: Restart gitlab-runner if new version
   assert: { that: true, quiet: true }
+  changed_when: true
   when: gitlab_runner_inspect_version.stdout != "gitlab/gitlab-runner:v" + gitlab_runner_version
   notify: Restart gitlab-runner container

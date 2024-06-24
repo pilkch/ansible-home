@@ -31,15 +31,16 @@ fileserver_network_home_samba_username: chris
 # <edit the gitlab image version in ansible, making the version jumps above>
 # ansible-playbook -i inventories/network_home.ini -l chris_linux_computer -v -kK playbooks/setup-podman-and-services.yml && date && sleep 600
 # <the sleep is to force waiting before running the next upgrade so that gitlab can get up and running, upgrade anything it needs to and settle down before you run the next upgrade. While you are waiting browse around, make sure your data looks to be present, check the logs to make sure everything is working properly>
-gitlab_version: 16.7.7
+gitlab_version: 16.11.4
 gitlab_fqdn: gitlab.network.home
 gitlab_https_port: 2443
 gitlab_url: "https://{{ gitlab_fqdn }}:{{ gitlab_https_port }}/"
 
 # Gitlab runner
-gitlab_runner_version: "{{ gitlab_version }}"
-gitlab_runner_executor_name: cpp-docker
-gitlab_runner_executor_docker_image: fedora-development:latest
+# NOTE: These don't necessarily match the Gitlab server version https://hub.docker.com/r/gitlab/gitlab-runner/tags
+gitlab_runner_version: 16.11.1
+gitlab_runner_executor_name: cpp-docker # The name of this executor
+gitlab_runner_executor_docker_image: fedora-development:39-1 # The docker image that jobs run in (Fedora 39, with a minor version for Dockerfile changes)
 
 # Home Assistant
 home_assistant_version: 2024.6
