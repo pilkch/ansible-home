@@ -3,7 +3,7 @@
   file:
     path: "{{ home_assistant_volumes_basedir }}/config/ssl"
     owner: "{{ home_assistant_container_user }}"
-    group: "{{ container_group }}"
+    group: "{{ home_assistant_container_group }}"
     state: directory
 
 - name: Install the public certificate
@@ -11,7 +11,7 @@
     src: fullchain.pem.j2
     dest: "{{ home_assistant_volumes_basedir }}/config/ssl/fullchain.pem"
     owner: "{{ home_assistant_container_user }}"
-    group: "{{ container_group }}"
+    group: "{{ home_assistant_container_group }}"
     mode: 0600
 
 - name: Install the private key
@@ -19,5 +19,5 @@
     src: privkey.pem.j2
     dest: "{{ home_assistant_volumes_basedir }}/config/ssl/privkey.pem"
     owner: "{{ home_assistant_container_user }}"
-    group: "{{ container_group }}"
+    group: "{{ home_assistant_container_group }}"
     mode: 0600

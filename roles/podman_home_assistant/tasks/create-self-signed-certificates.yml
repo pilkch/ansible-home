@@ -3,7 +3,7 @@
   file:
     path: "{{ home_assistant_volumes_basedir }}/config/ssl"
     owner: "{{ home_assistant_container_user }}"
-    group: "{{ container_group }}"
+    group: "{{ home_assistant_container_group }}"
     state: directory
 
 - name: Check if public certificate exists
