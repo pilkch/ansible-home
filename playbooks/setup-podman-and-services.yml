@@ -14,3 +14,7 @@
 - hosts: homeassistant
   roles:
     - podman_home_assistant
+
+- hosts: tandoor
+  roles:
+    - podman_tandoor

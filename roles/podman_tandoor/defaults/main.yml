@@ -1,0 +1,8 @@
+---
+tandoor_container_user: tandoor
+tandoor_container_group: tandoor
+
+tandoor_cert_organization_name: "My Organisation"
+
+tandoor_https_port: 9443
+tandoor_internal_port: 8080

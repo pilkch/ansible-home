@@ -20,6 +20,19 @@ Wants={{ unit }}
 [Service]
 Type=simple
 TimeoutStartSec={{ systemd_TimeoutStartSec }}
+
+{% if container_docker_compose_folder is defined %}
+# Environment=PODMAN_SYSTEMD_UNIT=%n
+# Environment=PODMAN_USERNS=keep-id
+WorkingDirectory={{ container_docker_compose_folder }}
+ExecStartPre=-/usr/bin/podman-compose down -t {{ container_stop_timeout|quote }}
+ExecStartPre=-/usr/bin/podman-compose stop
+ExecStop=/usr/bin/podman-compose rm
+ExecStart=/usr/bin/podman-compose up --remove-orphans
+ExecStop=/usr/bin/podman-compose down -t {{ container_stop_timeout|quote }}
+ExecStop=/usr/bin/podman-compose stop
+ExecStop=/usr/bin/podman-compose rm
+{% else %}
 ExecStartPre=-/usr/bin/podman stop -t {{ container_stop_timeout|quote }} {{ container_name|quote }}
 ExecStartPre=-/usr/bin/podman rm -f {{ container_name|quote }}
 ExecStartPre=-/usr/bin/rm -f {{ pidfile }} {{ cidfile }}
@@ -32,6 +45,8 @@ ExecStart=/usr/bin/podman run --name {{ container_name }} \
 
 ExecStop=/usr/bin/sh -c "/usr/bin/podman stop -t "{{ container_stop_timeout }}" `cat {{ cidfile }}`"
 ExecStop=/usr/bin/sh -c "/usr/bin/podman rm -f `cat {{ cidfile }}`"
+{% endif %}
+
 Restart={{ container_restart }}
 RestartSec={{ systemd_RestartSec }}
 KillMode=mixed

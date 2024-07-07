@@ -1,0 +1,116 @@
+---
+- set_fact:
+    tandoor_compose_basedir: "/home/{{ tandoor_container_user }}/srv/tandoor"
+
+- set_fact:
+    tandoor_nginx_config: "{{ tandoor_compose_basedir }}/nginx_config"
+
+- set_fact:
+    tandoor_nginx_ssl: "{{ tandoor_compose_basedir }}/nginx_ssl"
+
+# User and group
+- block:
+  - name: "Create tandoor group"
+    group:
+      name: "{{ tandoor_container_group }}"
+
+  - name: "Create tandoor user"
+    user:
+      name: "{{ tandoor_container_user }}"
+      password: "{{ tandoor_container_user_password | password_hash('sha512') }}"
+      update_password: always
+      groups: "{{ tandoor_container_group }}"
+      append: yes
+
+  become: true
+
+
+# Create folders
+- name: Create the data folders for Tandoor
+  file:
+    path: "{{ tandoor_compose_basedir }}/{{ item }}"
+    owner: "{{ tandoor_container_user }}"
+    group: "{{ tandoor_container_group }}"
+    state: directory
+  with_items:
+    - nginx_config
+    - nginx_ssl
+    - nginx_cache
+    - nginx_var_run
+    - postgresql
+    - staticfiles
+    - mediafiles
+  become: true
+  become_user: "{{ tandoor_container_user }}"
+
+
+# Create new self signed certificates if they aren't present yet
+- name: Create self signed certificates
+  ansible.builtin.import_tasks: create-self-signed-certificates.yml
+
+# NOTE: This can take a while and time out on lesser hardware such as a Pi or NUC, so you might have to generate this locally on the ansible controller, then push it to the host
+- name: Generate dhparams.pem
+  community.crypto.openssl_dhparam:
+    path: "{{ tandoor_nginx_ssl }}/dhparams.pem"
+    size: 4096
+  become: true
+  become_user: "{{ tandoor_container_user }}"
+
+- name: Copy nginx tandoor.conf file
+  ansible.builtin.template:
+    src: nginx_tandoor.conf.j2
+    dest: "{{ tandoor_nginx_config }}/tandoor.conf"
+    owner: "{{ tandoor_container_user }}"
+    group: "{{ tandoor_container_group }}"
+    mode: 0600
+  become: true
+  become_user: "{{ tandoor_container_user }}"
+
+- name: Copy Tandoor docker-compose.yml file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ tandoor_compose_basedir }}/docker-compose.yml"
+    owner: "{{ tandoor_container_user }}"
+    group: "{{ tandoor_container_group }}"
+    mode: 0600
+  become: true
+  become_user: "{{ tandoor_container_user }}"
+
+- name: Copy Tandoor .env file
+  ansible.builtin.template:
+    src: dot_env.j2
+    dest: "{{ tandoor_compose_basedir }}/.env"
+    owner: "{{ tandoor_container_user }}"
+    group: "{{ tandoor_container_group }}"
+    mode: 0600
+  become: true
+  become_user: "{{ tandoor_container_user }}"
+
+
+# For reference, this is the docker run command that we are trying to recreate (For a non-compose, just the tandoor recipes container)
+# sudo docker run -d \
+#    -v "$(pwd)"/staticfiles:/opt/recipes/staticfiles \
+#    -v "$(pwd)"/mediafiles:/opt/recipes/mediafiles \
+#    -p 80:8080 \
+#    -e SECRET_KEY=YOUR_SECRET_KEY \
+#    -e DB_ENGINE=django.db.backends.postgresql \
+#    -e POSTGRES_HOST=db_recipes \
+#    -e POSTGRES_PORT=5432 \
+#    -e POSTGRES_USER=djangodb \
+#    -e POSTGRES_PASSWORD=YOUR_POSTGRES_SECRET_KEY \
+#    -e POSTGRES_DB=djangodb \
+#    --name recipes_1 \
+#    vabene1111/recipes
+
+- name: Create the Tandoor container
+  vars:
+    container_user: "{{ tandoor_container_user }}"
+    container_group: "{{ tandoor_container_group }}"
+    systemd_TimeoutStartSec: 90
+    container_name: tandoor
+    container_docker_compose_folder: "{{ tandoor_compose_basedir }}"
+    container_firewall_ports:
+      - "{{ tandoor_https_port }}/tcp"
+
+  import_role:
+    name: podman_container

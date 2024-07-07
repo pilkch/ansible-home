@@ -1,0 +1,16 @@
+server {
+    server_name {{ tandoor_fqdn }};
+    listen {{ tandoor_https_port }} ssl;
+    listen [::]:{{ tandoor_https_port }} ssl;
+
+    ssl_certificate /etc/nginx/ssl/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/privkey.pem;
+    ssl_dhparam /etc/nginx/ssl/dhparams.pem;
+
+    location / {
+        proxy_set_header Host $http_host; # try $host instead if this doesn't work
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_pass http://{{ tandoor_fqdn }}:{{ tandoor_internal_port }};
+        proxy_redirect http://{{ tandoor_fqdn }}:{{ tandoor_internal_port }} https://{{ tandoor_fqdn }};
+    }
+}
