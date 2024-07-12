@@ -1,0 +1,73 @@
+version: '3.9'
+services:
+  db_recipes:
+    image: docker.io/library/postgres:16-alpine
+    restart: always
+    env_file:
+      - ./.env
+    # TODO: This uid/gid stuff is pretty gross because docker-compose doesn't seem to support keeping the group properly?
+    user: ${UID:-1001}:${GID:-1001}
+    x-podman:
+      uidmaps:
+        - "0:1:1"
+        - "${UID:-1001}:0:1"
+      gidmaps:
+        - "0:1:1"
+        - "${GID:-1001}:0:1"
+    group_add:
+      - keep-groups
+    volumes:
+      - ./postgresql:/var/lib/postgresql/data:Z
+
+  web_recipes:
+    image: "docker.io/vabene1111/recipes:{{ tandoor_version }}"
+    restart: always
+    env_file:
+      - ./.env
+    user: ${UID:-1001}:${GID:-1001}
+    x-podman:
+      uidmaps:
+        - "0:1:1"
+        - "${UID:-1001}:0:1"
+      gidmaps:
+        - "0:1:1"
+        - "${GID:-1001}:0:1"
+    group_add:
+      - keep-groups
+    volumes:
+      - staticfiles:/opt/recipes/staticfiles:Z
+      # Do not make this a bind mount, see https://docs.tandoor.dev/install/docker/#volumes-vs-bind-mounts
+      - ./nginx_config:/opt/recipes/nginx/conf.d:Z
+      - ./mediafiles:/opt/recipes/mediafiles:Z
+    ports:
+      - {{ tandoor_internal_port }}:{{ tandoor_internal_port }}
+
+  nginx_recipes:
+    image: docker.io/library/nginx:mainline-alpine
+    restart: always
+    env_file:
+      - ./.env
+    user: ${UID:-1001}:${GID:-1001}
+    x-podman:
+      uidmaps:
+        - "0:1:1"
+        - "${UID:-1001}:0:1"
+      gidmaps:
+        - "0:1:1"
+        - "${GID:-1001}:0:1"
+    group_add:
+      - keep-groups
+    volumes:
+      # NOTE: We have to replace the whole conf.d folder because it contains a default.conf file which tries to host something on port 80, we want to wipe that out and only use our config file
+      - ./nginx_config:/etc/nginx/conf.d:Z
+      # NOTE: This is a very heavy handed way of allowing nginx to write to /var/run/nginx.pid
+      # We should probably just use something like this instead https://github.com/nginxinc/docker-nginx-unprivileged/blob/04c3e28281cf2d19b52e953bb3386412bff0cea2/mainline/alpine-slim/Dockerfile#L117
+      # TODO: Maybe /var/run and /var/cache should be volumes?
+      - ./nginx_var_run:/var/run:Z
+      - ./nginx_cache:/var/cache/nginx:Z
+      - ./nginx_ssl:/etc/nginx/ssl:Z
+    ports:
+      - {{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}:{{ tandoor_https_port }}:{{ tandoor_https_port }}
+
+volumes:
+  staticfiles:

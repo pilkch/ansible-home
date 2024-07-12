@@ -5,6 +5,7 @@
       name:
         - firewalld
         - podman
+        - podman-compose
       state: latest
 
   become: true
