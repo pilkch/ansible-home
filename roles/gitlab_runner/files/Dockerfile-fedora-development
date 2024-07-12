@@ -1,6 +1,16 @@
 FROM fedora:39
 
-RUN dnf -y update && yum install -y gcc gcc-g++ clang cmake make json-c-devel gtest-devel ShellCheck && dnf clean all
+# Install basics and common library dependencies
+RUN dnf -y update && yum install -y git gcc gcc-g++ clang cmake make json-c-devel gtest-devel ShellCheck \
+  gnutls-devel libxdg-basedir-devel libxml2-devel \
+  SDL2-devel SDL2_image-devel SDL2_mixer-devel SDL2_net-devel SDL2_ttf-devel \
+  mesa-libGL-devel mesa-libGLU-devel GLee-devel \
+  freetype-devel && \
+  dnf clean all
+
+# Fix the Gcc 13 C++ headers
+RUN sed -i "/const error_category& socket_category() noexcept/c\  inline const error_category& socket_category() noexcept" /usr/include/c++/13/experimental/socket
+RUN sed -i "/const error_category& stream_category() noexcept/c\  inline const error_category& stream_category() noexcept" /usr/include/c++/13/experimental/buffer
 
 WORKDIR /root/gitlab-runner/
 

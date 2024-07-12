@@ -1,0 +1,44 @@
+---
+- name: Create the ssl folder for Home Assistant
+  file:
+    path: "{{ home_assistant_volumes_basedir }}/config/ssl"
+    owner: "{{ home_assistant_container_user }}"
+    group: "{{ container_group }}"
+    state: directory
+
+- name: Check if public certificate exists
+  stat:
+    path: "{{ home_assistant_volumes_basedir }}/config/ssl/fullchain.pem"
+  register: public_certificate
+
+- name: Check if private key exists
+  stat:
+    path: "{{ home_assistant_volumes_basedir }}/config/ssl/privkey.pem"
+  register: private_key
+
+- block:
+  - name: Generate a self-signed private key
+    community.crypto.openssl_privatekey:
+      path: "{{ home_assistant_volumes_basedir }}/config/ssl/privkey.pem"
+      size: 4096
+      mode: 0600
+      type: RSA
+      state: present
+
+  - name: Create certificate signing request (CSR) for self-signed certificate
+    community.crypto.openssl_csr_pipe:
+      privatekey_path: "{{ home_assistant_volumes_basedir }}/config/ssl/privkey.pem"
+      common_name: "{{ home_assistant_fqdn }}"
+      organization_name: "{{ home_assistant_cert_organization_name }}"
+    register: csr
+
+  - name: Generate a self-signed SSL/TLS certificate (valid for 10 years)
+    community.crypto.x509_certificate:
+      path: "{{ home_assistant_volumes_basedir }}/config/ssl/fullchain.pem"
+      privatekey_path: "{{ home_assistant_volumes_basedir }}/config/ssl/privkey.pem"
+      csr_content: "{{ csr.csr }}"
+      provider: selfsigned
+      selfsigned_not_after: "+3650d"
+      mode: 0644
+
+  when: (not public_certificate.stat.exists) or (not private_key.stat.exists)
