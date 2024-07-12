@@ -20,42 +20,44 @@ Generally these playbooks require that the target physical or virtual machine ha
 git_config_email: <your git email here>
 git_config_user_name: "<your name here>"
 ```
-2. Create or edit a vault for each host which needs the git certificate and key
+2. Create your own vault file from example-vault.yml:
 ```bash
-ansible-vault create host_vars/myhost/vault.yml
+cp ./example-vault.yml ./inventories/group_vars/all/vault.yml
+export EDITOR=vim
+ansible-vault create ./inventories/group_vars/all/vault.yml
 ```
-OR
+3. Edit the variables in the vault to match your own:
 ```bash
-ansible-vault edit host_vars/myhost/vault.yml
+ansible-vault edit ./inventories/group_vars/all/vault.yml
 ```
-3. Add the certificate and private keys as variables:
+All the parts that say "changeme" or "ChangeMe" are placeholder values, for example certificate and private keys:
 ```yaml
----
-git_certificate: |
+home_assistant_ca_bundle_certificate: |
   -----BEGIN CERTIFICATE-----
-  ...
+  changeme
   -----END CERTIFICATE-----
 
-git_private_key: |
-  -----BEGIN PRIVATE KEY-----
-  ...
-  -----END PRIVATE KEY-----
+home_assistant_private_key: |
+  -----BEGIN RSA PRIVATE KEY-----
+  changeme
+  -----END RSA PRIVATE KEY-----
 ```
+You don't have to set up every single variable, only the services you plan on using.
 
 ## Usage Examples
 
 ```bash
-ansible-playbook -i inventories/network_home.ini -l chris_linux_computer -K playbooks/setup-desktop.yml
+ansible-playbook -i inventories/network_home.ini -l chris_linux_computer -K --ask-vault-pass playbooks/setup-desktop.yml
 ```
 
 ```bash
-ansible-playbook -i inventories/network_home.ini -l fileserver.network.home -K playbooks/setup-server.yml
-ansible-playbook -i inventories/network_home.ini -l homeassistant.network.home -K playbooks/setup-server.yml
+ansible-playbook -i inventories/network_home.ini -l fileserver.network.home -K --ask-vault-pass playbooks/setup-server.yml
+ansible-playbook -i inventories/network_home.ini -l homeassistant.iluo.xyz -K --ask-vault-pass playbooks/setup-server.yml
 ```
 
 ```bash
-ansible-playbook -i inventories/network_home.ini -l homeassistant.network.home -K playbooks/setup-podman-and-services.yml
-ansible-playbook -i inventories/network_home.ini -l chris_linux_computer -K playbooks/setup-podman-and-services.yml
+ansible-playbook -i inventories/network_home.ini -l homeassistant.iluo.xyz -K --ask-vault-pass playbooks/setup-podman-and-services.yml
+ansible-playbook -i inventories/network_home.ini -l chris_linux_computer -K --ask-vault-pass playbooks/setup-podman-and-services.yml
 ```
 
 ## Debugging Podman Containers

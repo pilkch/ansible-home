@@ -19,50 +19,13 @@
     mode: 0644
 
 
-# SSL Certificates
-- name: Create the ssl folder for Home Assistant
-  file:
-    path: "{{ home_assistant_volumes_basedir }}/config/ssl"
-    owner: "{{ home_assistant_container_user }}"
-    group: "{{ container_group }}"
-    state: directory
+# New self signed certificates are created if they aren't present yet
+#- name: Create self signed certificates
+#  ansible.builtin.import_tasks: create-self-signed-certificates.yml
 
-- name: Check if public certificate exists
-  stat:
-    path: "{{ home_assistant_volumes_basedir }}/config/ssl/fullchain.pem"
-  register: public_certificate
-
-- name: Check if private key exists
-  stat:
-    path: "{{ home_assistant_volumes_basedir }}/config/ssl/privkey.pem"
-  register: private_key
-
-- block:
-  - name: Generate a self-signed private key
-    community.crypto.openssl_privatekey:
-      path: "{{ home_assistant_volumes_basedir }}/config/ssl/privkey.pem"
-      size: 4096
-      mode: 0600
-      type: RSA
-      state: present
-
-  - name: Create certificate signing request (CSR) for self-signed certificate
-    community.crypto.openssl_csr_pipe:
-      privatekey_path: "{{ home_assistant_volumes_basedir }}/config/ssl/privkey.pem"
-      common_name: "{{ home_assistant_fqdn }}"
-      organization_name: "{{ home_assistant_cert_organization_name }}"
-    register: csr
-
-  - name: Generate a self-signed SSL/TLS certificate (valid for 10 years)
-    community.crypto.x509_certificate:
-      path: "{{ home_assistant_volumes_basedir }}/config/ssl/fullchain.pem"
-      privatekey_path: "{{ home_assistant_volumes_basedir }}/config/ssl/privkey.pem"
-      csr_content: "{{ csr.csr }}"
-      provider: selfsigned
-      selfsigned_not_after: "+3650d"
-      mode: 0644
-
-  when: (not public_certificate.stat.exists) or (not private_key.stat.exists)
+# Pre-generated CA signed certficates are installed (Requires values from an ansible vault)
+- name: Install CA signed certificates
+  ansible.builtin.import_tasks: install-ca-signed-certificates.yml
 
 
 # For reference, this is the docker-compose.yml we are trying to recreate
