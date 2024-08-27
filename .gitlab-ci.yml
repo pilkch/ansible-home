@@ -1,0 +1,20 @@
+stages:
+  - tests-and-checks
+
+default:
+  before_script:
+    - dnf install -y yamllint python3-ansible-lint
+
+check-yaml:
+  stage: tests-and-checks
+  tags:
+    - linux
+  script:
+    - ansible-lint
+
+check-ansible:
+  stage: tests-and-checks
+  tags:
+    - linux
+  script:
+    - yamllint .
