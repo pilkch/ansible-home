@@ -56,6 +56,18 @@
   become: true
   become_user: "{{ tandoor_container_user }}"
 
+# Get the user id and group id
+- block:
+  - ansible.builtin.getent:
+      database: passwd
+
+  - ansible.builtin.getent:
+      database: group
+
+  - ansible.builtin.set_fact:
+      tandoor_uid: "{{ getent_passwd[tandoor_container_user].1 }}"
+      tandoor_gid: "{{ getent_group[tandoor_container_group].1 }}"
+
 - name: Copy nginx tandoor.conf file
   ansible.builtin.template:
     src: nginx_tandoor.conf.j2
