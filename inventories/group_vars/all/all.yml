@@ -50,6 +50,10 @@ home_assistant_location_latitude: -33.86785000
 home_assistant_location_longitude: 151.20732000
 home_assistant_location_elevation: 40
 
+# StirlingPDF
+stirlingpdf_version: latest-ultra-lite
+stirlingpdf_fqdn: pdf.network.home
+
 # Tandoor Recipes
 tandoor_version: 1.5.17
 tandoor_fqdn: tandoor.network.home

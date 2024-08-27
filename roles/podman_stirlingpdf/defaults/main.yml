@@ -1,0 +1,7 @@
+---
+stirlingpdf_container_user: stirlingpdf
+stirlingpdf_container_group: stirlingpdf
+
+stirlingpdf_cert_organization_name: "My Organisation"
+
+stirlingpdf_https_port: 5443

@@ -20,6 +20,16 @@ gitlab_runner_executor_token: ChangeMe2mkxDxL3-gVOEPx
 # Samba share
 fileserver_network_home_samba_password: changeme
 
+# StirlingPDF
+stirlingpdf_container_user_password: changeme
+stirlingpdf_initial_login_password: changeme
+
+# Tandoor
+tandoor_container_user_password: changeme
+# random secret key, use for example `base64 /dev/urandom | head -c50` to generate one
+tandoor_secret_key: ChangeMeSdjfiojZFvcnknCfkdCsd835sdsdfjk
+tandoor_postgres_password: changeme
+
 # Vaultwarden
 # Generated with `openssl rand -base64 48`
 vaultwarden_admin_token: ChangeMe000nZ6a7Choc7khw0S37F9VX4jHywcRlQvYf6FZtJk1HAcFsQe/5X1l

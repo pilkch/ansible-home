@@ -7,6 +7,10 @@
   roles:
     - podman_gitlab
 
+- hosts: stirlingpdf
+  roles:
+    - podman_stirlingpdf
+
 - hosts: vaultwarden
   roles:
     - podman_vaultwarden
