@@ -26,12 +26,14 @@ TimeoutStartSec={{ systemd_TimeoutStartSec }}
 # Environment=PODMAN_USERNS=keep-id
 WorkingDirectory={{ container_docker_compose_folder }}
 ExecStartPre=-/usr/bin/podman-compose down -t {{ container_stop_timeout|quote }}
-ExecStartPre=-/usr/bin/podman-compose stop
-ExecStop=/usr/bin/podman-compose rm
+ExecStartPre=-/usr/bin/podman pod stop pod_{{ container_name }}
+ExecStartPre=-/usr/bin/podman pod rm pod_{{ container_name }}
+
 ExecStart=/usr/bin/podman-compose up --remove-orphans
+
 ExecStop=/usr/bin/podman-compose down -t {{ container_stop_timeout|quote }}
-ExecStop=/usr/bin/podman-compose stop
-ExecStop=/usr/bin/podman-compose rm
+ExecStop=/usr/bin/podman pod stop pod_{{ container_name }}
+ExecStop=/usr/bin/podman pod rm pod_{{ container_name }}
 {% else %}
 ExecStartPre=-/usr/bin/podman stop -t {{ container_stop_timeout|quote }} {{ container_name|quote }}
 ExecStartPre=-/usr/bin/podman rm -f {{ container_name|quote }}

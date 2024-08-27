@@ -2,7 +2,9 @@
 # Install podman
 - name: Ensure podman is installed
   ansible.builtin.package:
-    name: podman
+    name:
+      - podman
+      - podman-compose
     state: present
   become: true
 

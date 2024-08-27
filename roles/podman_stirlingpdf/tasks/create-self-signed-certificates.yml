@@ -1,0 +1,48 @@
+---
+- block:
+  - name: Create the configs folder
+    file:
+      path: "{{ stirlingpdf_configs }}"
+      owner: "{{ stirlingpdf_container_user }}"
+      group: "{{ stirlingpdf_container_group }}"
+      state: directory
+
+  - name: Check if public certificate exists
+    stat:
+      path: "{{ stirlingpdf_configs }}/fullchain.pem"
+    register: public_certificate
+
+  - name: Check if private key exists
+    stat:
+      path: "{{ stirlingpdf_configs }}/privkey.pem"
+    register: private_key
+
+  - block:
+    - name: Generate a self-signed private key
+      community.crypto.openssl_privatekey:
+        path: "{{ stirlingpdf_configs }}/privkey.pem"
+        size: 4096
+        mode: 0600
+        type: RSA
+        state: present
+
+    - name: Create certificate signing request (CSR) for self-signed certificate
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: "{{ stirlingpdf_configs }}/privkey.pem"
+        common_name: "{{ stirlingpdf_fqdn }}"
+        organization_name: "{{ stirlingpdf_cert_organization_name }}"
+      register: csr
+
+    - name: Generate a self-signed SSL/TLS certificate (valid for 10 years)
+      community.crypto.x509_certificate:
+        path: "{{ stirlingpdf_configs }}/fullchain.pem"
+        privatekey_path: "{{ stirlingpdf_configs }}/privkey.pem"
+        csr_content: "{{ csr.csr }}"
+        provider: selfsigned
+        selfsigned_not_after: "+3650d"
+        mode: 0644
+
+    when: (not public_certificate.stat.exists) or (not private_key.stat.exists)
+
+  become: true
+  become_user: "{{ stirlingpdf_container_user }}"

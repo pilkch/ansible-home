@@ -1,0 +1,95 @@
+---
+- set_fact:
+    stirlingpdf_compose_basedir: "/home/{{ stirlingpdf_container_user }}/srv/stirlingpdf"
+
+- set_fact:
+    stirlingpdf_configs: "{{ stirlingpdf_compose_basedir }}/configs"
+
+# User and group
+- block:
+  - name: "Create stirlingpdf group"
+    group:
+      name: "{{ stirlingpdf_container_group }}"
+
+  - name: "Create stirlingpdf user"
+    user:
+      name: "{{ stirlingpdf_container_user }}"
+      password: "{{ stirlingpdf_container_user_password | password_hash('sha512') }}"
+      update_password: always
+      groups: "{{ stirlingpdf_container_group }}"
+      append: yes
+
+  become: true
+
+
+# Create folders
+- name: Create the data folders for StirlingPDF
+  file:
+    path: "{{ stirlingpdf_compose_basedir }}/{{ item }}"
+    owner: "{{ stirlingpdf_container_user }}"
+    group: "{{ stirlingpdf_container_group }}"
+    state: directory
+  with_items:
+    - configs
+    - logs
+  become: true
+  become_user: "{{ stirlingpdf_container_user }}"
+
+# Create new self signed certificates if they aren't present yet
+- name: Create self signed certificates
+  ansible.builtin.import_tasks: create-self-signed-certificates.yml
+
+- name: Copy StirlingPDF settings.yml file
+  ansible.builtin.template:
+    src: settings.yml.j2
+    dest: "{{ stirlingpdf_configs }}/settings.yml"
+    owner: "{{ stirlingpdf_container_user }}"
+    group: "{{ stirlingpdf_container_group }}"
+    mode: 0600
+  become: true
+  become_user: "{{ stirlingpdf_container_user }}"
+
+# Get the user id and group id
+- block:
+  - ansible.builtin.getent:
+      database: passwd
+
+  - ansible.builtin.getent:
+      database: group
+
+  - ansible.builtin.set_fact:
+      stirlingpdf_uid: "{{ getent_passwd[stirlingpdf_container_user].1 }}"
+      stirlingpdf_gid: "{{ getent_group[stirlingpdf_container_group].1 }}"
+
+- name: Copy StirlingPDF docker-compose.yml file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ stirlingpdf_compose_basedir }}/docker-compose.yml"
+    owner: "{{ stirlingpdf_container_user }}"
+    group: "{{ stirlingpdf_container_group }}"
+    mode: 0600
+  become: true
+  become_user: "{{ stirlingpdf_container_user }}"
+
+- name: Copy StirlingPDF .env file
+  ansible.builtin.template:
+    src: dot_env.j2
+    dest: "{{ stirlingpdf_compose_basedir }}/.env"
+    owner: "{{ stirlingpdf_container_user }}"
+    group: "{{ stirlingpdf_container_group }}"
+    mode: 0600
+  become: true
+  become_user: "{{ stirlingpdf_container_user }}"
+
+- name: Create the StirlingPDF container
+  vars:
+    container_user: "{{ stirlingpdf_container_user }}"
+    container_group: "{{ stirlingpdf_container_group }}"
+    systemd_TimeoutStartSec: 90
+    container_name: stirlingpdf
+    container_docker_compose_folder: "{{ stirlingpdf_compose_basedir }}"
+    container_firewall_ports:
+      - "{{ stirlingpdf_https_port }}/tcp"
+
+  import_role:
+    name: podman_container

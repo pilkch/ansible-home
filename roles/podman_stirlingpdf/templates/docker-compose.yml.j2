@@ -1,0 +1,28 @@
+version: '3.9'
+services:
+  stirling-pdf:
+    container_name: stirling-pdf
+    image: docker.io/frooodle/s-pdf:{{ stirlingpdf_version }}
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    env_file:
+      - ./.env
+    user: {{ stirlingpdf_uid }}:{{ stirlingpdf_gid }}
+    x-podman:
+      uidmaps:
+        - "0:1:1"
+        - "{{ stirlingpdf_uid }}:0:1"
+      gidmaps:
+        - "0:1:1"
+        - "{{ stirlingpdf_gid }}:0:1"
+    group_add:
+      - keep-groups
+    volumes:
+      - ./configs:/configs:Z
+#      - /location/of/customFiles:/customFiles/:Z
+      - ./logs:/logs/:Z
+    ports:
+      - "{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}:{{ stirlingpdf_https_port }}:{{ stirlingpdf_https_port }}"
+    restart: unless-stopped
