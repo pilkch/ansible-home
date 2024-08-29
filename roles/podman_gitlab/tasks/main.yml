@@ -146,4 +146,3 @@
 
   import_role:
     name: podman_container
-

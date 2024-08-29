@@ -32,7 +32,7 @@
     localport: 22
     action: allow
     direction: in
-    program: "%SystemRoot%\system32\OpenSSH\sshd.exe"
+    program: "%SystemRoot%\\system32\\OpenSSH\\sshd.exe"
     protocol: tcp
     state: present
     enabled: yes
@@ -41,7 +41,7 @@
   win_regedit:
     path: HKLM:\SOFTWARE\OpenSSH
     name: DefaultShell
-    data: "{{ ansible_env.SystemRoot }}\System32\WindowsPowerShell\v1.0\powershell.exe"
+    data: "{{ ansible_env.SystemRoot }}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
     state: present
 
 # Set up administrator OpenSSH key
@@ -75,7 +75,7 @@
 
   - name: ACL FullControl for SYSTEM on administrators_authorized_keys
     win_acl:
-      path: "{{ ansible_env.ProgramData }}\ssh\administrators_authorized_keys"
+      path: "{{ ansible_env.ProgramData }}\\ssh\\administrators_authorized_keys"
       user: SYSTEM
       rights: FullControl
       type: allow
