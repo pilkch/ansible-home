@@ -10,11 +10,11 @@ check-yaml:
   tags:
     - linux
   script:
-    - ansible-lint
+    - yamllint .
 
 check-ansible:
   stage: tests-and-checks
   tags:
     - linux
   script:
-    - yamllint .
+    - ANSIBLE_CONFIG=ansible.cfg ansible-lint
