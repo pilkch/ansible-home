@@ -108,7 +108,7 @@
     ansible.builtin.set_fact:
       _service_systemd_state: restarted
     when:
-      - service_file is changed 
+      - service_file is changed
 
   - name: Ensure service is enabled and {{ _service_systemd_state }}
     environment:

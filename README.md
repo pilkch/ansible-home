@@ -98,6 +98,16 @@ systemctl --user restart homeassistant-container
 tail -F srv/homeassistant/config/home-assistant.log
 ```
 
+For docker-compose.yml containers, start it manually:
+```bash
+/usr/bin/podman-compose up --remove-orphans
+```
+
+For docker-compose.yml containers, start it manually with verbose logging:
+```bash
+/usr/bin/podman-compose --verbose up --remove-orphans
+```
+
 ## General Podman Container Administration
 
 When upgrading the version or changing the settings of a container you can just run the `playbooks/setup-podman-and-services.yml` playbook, but I prefer to stop the container manually and perform a backup before redeploying it, for example:

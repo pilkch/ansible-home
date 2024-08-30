@@ -6,14 +6,14 @@ services:
     env_file:
       - ./.env
     # TODO: This uid/gid stuff is pretty gross because docker-compose doesn't seem to support keeping the group properly?
-    user: ${UID:-1001}:${GID:-1001}
+    user: {{ tandoor_uid }}:{{ tandoor_gid }}
     x-podman:
       uidmaps:
         - "0:1:1"
-        - "${UID:-1001}:0:1"
+        - "{{ tandoor_uid }}:0:1"
       gidmaps:
         - "0:1:1"
-        - "${GID:-1001}:0:1"
+        - "{{ tandoor_gid }}:0:1"
     group_add:
       - keep-groups
     volumes:
@@ -24,14 +24,14 @@ services:
     restart: always
     env_file:
       - ./.env
-    user: ${UID:-1001}:${GID:-1001}
+    user: {{ tandoor_uid }}:{{ tandoor_gid }}
     x-podman:
       uidmaps:
         - "0:1:1"
-        - "${UID:-1001}:0:1"
+        - "{{ tandoor_uid }}:0:1"
       gidmaps:
         - "0:1:1"
-        - "${GID:-1001}:0:1"
+        - "{{ tandoor_gid }}:0:1"
     group_add:
       - keep-groups
     volumes:
@@ -47,14 +47,14 @@ services:
     restart: always
     env_file:
       - ./.env
-    user: ${UID:-1001}:${GID:-1001}
+    user: {{ tandoor_uid }}:{{ tandoor_gid }}
     x-podman:
       uidmaps:
         - "0:1:1"
-        - "${UID:-1001}:0:1"
+        - "{{ tandoor_uid }}:0:1"
       gidmaps:
         - "0:1:1"
-        - "${GID:-1001}:0:1"
+        - "{{ tandoor_gid }}:0:1"
     group_add:
       - keep-groups
     volumes:
