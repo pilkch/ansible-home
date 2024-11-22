@@ -1,0 +1,4 @@
+---
+- hosts: stirlingpdf
+  roles:
+    - podman_stirlingpdf

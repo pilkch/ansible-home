@@ -1,0 +1,4 @@
+---
+- hosts: homeassistant
+  roles:
+    - podman_home_assistant
