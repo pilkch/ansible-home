@@ -42,3 +42,4 @@
     - { name: init.defaultBranch, value: main }
     - { name: color.ui, value: auto }
     - { name: core.editor, value: vim }
+    - { name: commit.gpgsign, value: true }
