@@ -43,7 +43,7 @@ gitlab_runner_executor_name: cpp-docker # The name of this executor
 gitlab_runner_executor_docker_image: fedora-development:39-1 # The docker image that jobs run in (Fedora 39, with a minor version for Dockerfile changes)
 
 # Home Assistant
-home_assistant_version: 2024.6
+home_assistant_version: 2024.12
 # Change these to suit your location
 home_assistant_timezone: Australia/Sydney
 home_assistant_location_latitude: -33.86785000
