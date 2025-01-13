@@ -19,11 +19,6 @@
     mode: 0644
 
 
-# New self signed certificates are created if they aren't present yet
-#- name: Create self signed certificates
-#  ansible.builtin.import_tasks: create-self-signed-certificates.yml
-
-# Pre-generated CA signed certficates are installed (Requires values from an ansible vault)
 - name: Install CA signed certificates
   ansible.builtin.import_tasks: install-ca-signed-certificates.yml
 
