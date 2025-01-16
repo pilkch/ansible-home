@@ -5,45 +5,15 @@ fileserver_network_home_samba_username: chris
 #\\192.168.0.84\data
 
 # Gitlab
-#
-# Version Upgrade Warning
-#
-# WARNING: For an existing instance you can't just pick the latest gitlab version and run it,
-# you have to follow the recommanded gitlab upgrade paths, which basically means installing certain intermediate versions
-# that will modify your install user data to work with the new version.
-# Otherwise, if you update from 14.10.5 straight to 16.3.0 for example it may not be able to interpret your data as it is
-# expecting a 15.x.y version of the data. So don't just blindly upgrade, follow the upgrade path set out below.
-#
-# Upgrade Paths
-# https://docs.gitlab.com/ee/update/index.html#upgrade-paths
-#
-# 15.0.5 > 15.4.6 > 15.11.13
-# 16.1 > 16.3.7 > 16.7.7 > 16.11.4
-#
-# What versions are available? This is a quick way to find out:
-# https://hub.docker.com/r/gitlab/gitlab-ce/tags?page=1
-#
-# Upgrade Process
-#
-# As the gitlab container user:
-# systemctl --user stop gitlab-container
-# (cd srv && zip -r gitlab20231101b.zip ./gitlab)
-# <edit the gitlab image version in ansible, making the version jumps above>
-# ansible-playbook -i inventories/network_home.ini -l chris_linux_computer -v -kK playbooks/setup-podman-and-services.yml && date && sleep 600
-# <the sleep is to force waiting before running the next upgrade so that gitlab can get up and running, upgrade anything it needs to and settle down before you run the next upgrade. While you are waiting browse around, make sure your data looks to be present, check the logs to make sure everything is working properly>
-gitlab_version: 16.11.4
 gitlab_fqdn: gitlab.network.home
 gitlab_https_port: 2443
 gitlab_url: "https://{{ gitlab_fqdn }}:{{ gitlab_https_port }}/"
 
 # Gitlab runner
-# NOTE: These don't necessarily match the Gitlab server version https://hub.docker.com/r/gitlab/gitlab-runner/tags
-gitlab_runner_version: 16.11.1
 gitlab_runner_executor_name: cpp-docker # The name of this executor
 gitlab_runner_executor_docker_image: fedora-development:39-1 # The docker image that jobs run in (Fedora 39, with a minor version for Dockerfile changes)
 
 # Home Assistant
-home_assistant_version: 2024.12
 # Change these to suit your location
 home_assistant_timezone: Australia/Sydney
 home_assistant_location_latitude: -33.86785000
@@ -51,14 +21,10 @@ home_assistant_location_longitude: 151.20732000
 home_assistant_location_elevation: 40
 
 # StirlingPDF
-stirlingpdf_version: latest-ultra-lite
 stirlingpdf_fqdn: pdf.network.home
 
 # Tandoor Recipes
-tandoor_version: 1.5.17
 tandoor_fqdn: tandoor.network.home
 
 # Vaultwarden
-# https://github.com/dani-garcia/vaultwarden/releases
-vaultwarden_version: 1.30.5
 vaultwarden_fqdn: vaultwarden.network.home
