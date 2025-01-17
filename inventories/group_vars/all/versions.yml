@@ -10,10 +10,11 @@
 # expecting a 15.x.y version of the data. So don't just blindly upgrade, follow the upgrade path set out below.
 #
 # Upgrade Paths
-# https://docs.gitlab.com/ee/update/index.html#upgrade-paths
+# https://docs.gitlab.com/ee/update/upgrade_paths.html
 #
 # 15.0.5 > 15.4.6 > 15.11.13
-# 16.1 > 16.3.7 > 16.7.7 > 16.11.4
+# 16.1 > 16.3.7 > 16.7.7 > 16.11.10
+# 17.1.8 > 17.3.7 > 17.5.z. The latest GitLab 17.5 release.
 #
 # What versions are available? This is a quick way to find out:
 # https://hub.docker.com/r/gitlab/gitlab-ce/tags?page=1
@@ -26,7 +27,7 @@
 # <edit the gitlab image version in ansible, making the version jumps above>
 # ansible-playbook -i inventories/network_home.ini -l chris_linux_computer -v -kK playbooks/setup-podman-and-services.yml && date && sleep 600
 # <the sleep is to force waiting before running the next upgrade so that gitlab can get up and running, upgrade anything it needs to and settle down before you run the next upgrade. While you are waiting browse around, make sure your data looks to be present, check the logs to make sure everything is working properly>
-gitlab_version: 16.11.4
+gitlab_version: 16.11.10
 
 # Gitlab runner
 # NOTE: These don't necessarily match the Gitlab server version https://hub.docker.com/r/gitlab/gitlab-runner/tags
