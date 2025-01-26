@@ -44,6 +44,54 @@ home_assistant_private_key: |
 ```
 You don't have to set up every single variable, only the services you plan on using.
 
+## Machine Preparation
+
+I run this ansible generally against physical machines, but it should work fine for VMs too.
+Preparation:
+1. Install Fedora Workstation manually (TODO: I really need to boot from HTTPS with kickstart scripts)
+2. Set a static IP
+3. Create a user for ansible and add it to the sudo group
+4. Turn on SSH and add a firewall rule for SSH
+5. Set up SSH keys with ssh-copy-id and test SSH from the ansible controller to the machine
+6. Update inventory/network_home.ini to match your machine, IP address, ansible user
+
+## Certificates
+
+### Self-signed Certificates
+
+1. Generate self-signed certificates and add them to the encrypted vault.yml:
+```bash
+./scripts/generate_self_signed_certificates.sh
+```
+
+### Let's Encrypt Certificates
+
+For some of the more sensitive services I use Let's Encrypt with certbot and a cloudflare domain, but it is quite manual because I have to generate certificates, add them to the ansible, then redeploy the service.
+
+**NOTE: Only some services require this, I only use it for Gitlab, VaultWarden, and Home Assistant**
+
+#### Setup
+
+On the machine that you edit your ansible on:
+```bash
+sudo dnf install python3 python3-virtualenv augeas-libs
+virtualenv --python=python3 myenv
+pip install certbot certbot-dns-cloudflare cloudflare
+```
+
+#### Certificate Generation/Renewal
+
+Create an ini file for your certificates:
+scripts/lets_encrypt/certbot-mydomain.com.ini
+```bash
+dns_cloudflare_api_token = REPLACE WITH API TOKEN FROM https://dash.cloudflare.com/profile/api-tokens YOU WANT A "Zone.DNS" TOKEN FOR YOUR DOMAIN
+```
+
+Generate the certificates:
+```bash
+./scripts/generate_lets_encrypt_certificate.sh homeassistant.mydomain.com home_assistant_ca_bundle_certificate home_assistant_private_key
+```
+
 ## Usage Examples
 
 ```bash
@@ -145,35 +193,3 @@ $ exit
 systemctl --user restart homeassistant-container
 ```
 Then log in via the web interface and change it to a real password (This ensures that the real password is not added to the bash history, even temporarily).
-
-
-## Certificates
-
-I use Let's Encrypt with certbot for a cloudflare domain, but it is manual because I have to generate certificates, add them to the ansible, then redeploy the service.
-
-### Setup
-
-On the machine that you edit your ansible on:
-```bash
-sudo dnf install python3 python3-virtualenv augeas-libs
-virtualenv --python=python3 myenv
-pip install certbot certbot-dns-cloudflare cloudflare
-```
-
-### Certificate Generation/Renewal
-
-Create an ini file for your certificates, Home Assistant used as an example:
-certbot-homeassistant.iluo.xyz.ini
-```bash
-dns_cloudflare_api_token = REPLACE WITH API TOKEN FROM https://dash.cloudflare.com/profile/api-tokens YOU WANT A "Zone.DNS" TOKEN FOR YOUR DOMAIN
-```
-
-Generate the certificates:
-```bash
-~/.local/bin/certbot certonly --dns-cloudflare --dns-cloudflare-credentials ./certbot-homeassistant.iluo.xyz.ini --config-dir letsencrypt/config --work-dir letsencrypt/working --logs-dir letsencrypt/logs -d homeassistant.iluo.xyz
-```
-
-Then open the ansible vault and copy paste the certificates into it, save the vault and redeploy with ansible:
-```bash
-ansible-playbook -vvvv -i inventories/network_home.ini -l homeassistant.iluo.xyz -kK --ask-vault-password playbooks/podman/homeassistant.yml
-```
