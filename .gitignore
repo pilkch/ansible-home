@@ -1,1 +1,11 @@
 inventories/group_vars/all/vault.yml
+inventories/group_vars/all/vault.yml.backup*
+
+scripts/lets_encrypt/certbot-*.ini
+scripts/self_signed/certificates.conf
+scripts/self_signed/certificates.conf.template
+
+.generate_certbot_certificates_temp/
+.generate_self_signed_certificates_temp/
+
+letsencrypt
