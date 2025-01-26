@@ -1,18 +1,11 @@
 ---
+# NOTE: This playbook is really only useful on a first deployment, call the individual plays in playbooks/service/ to update individual services on later deployments
+
 - hosts: server
   roles:
     - fedora_common
     #- ntp
     - update_firmware
 
-- hosts: gitlab_runner
-  roles:
-    - gitlab_runner
-
-- hosts: sambaserver
-  roles:
-    - samba_server
-  vars:
-    samba_folder: "{{ fileserver_network_home_samba_folder }}"
-    samba_user: "{{ fileserver_network_home_samba_username }}"
-    samba_password: "{{ fileserver_network_home_samba_password }}"
+- ansible.builtin.import_playbook: service/gitlab_runner.yml
+- ansible.builtin.import_playbook: service/samba_server.yml

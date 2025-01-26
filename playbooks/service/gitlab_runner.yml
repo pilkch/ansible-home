@@ -1,0 +1,4 @@
+---
+- hosts: gitlab_runner
+  roles:
+    - gitlab_runner

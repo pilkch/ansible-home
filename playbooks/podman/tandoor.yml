@@ -1,0 +1,4 @@
+---
+- hosts: tandoor
+  roles:
+    - podman_tandoor
