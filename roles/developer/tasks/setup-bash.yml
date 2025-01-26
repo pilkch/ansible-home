@@ -9,3 +9,4 @@
     - "export HISTTIMEFORMAT=\"%F %T \""
     - "shopt -s histappend"
     - "export EDITOR=vim"
+    - "export GPG_TTY=$(tty)"
