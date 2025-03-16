@@ -8,5 +8,6 @@
     - "export HISTFILESIZE=1000000"
     - "export HISTTIMEFORMAT=\"%F %T \""
     - "shopt -s histappend"
-    - "export EDITOR=vim"
-    - "export GPG_TTY=$(tty)"
+    - "export EDITOR=vim" # For git
+    - "export GPG_TTY=$(tty)" # For GPG key access
+    - "export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id --user)/bus" # For systemctl user service access
