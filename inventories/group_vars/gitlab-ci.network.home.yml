@@ -1,0 +1,2 @@
+---
+gitlab_runner_executor_token: "{{ gitlab_runner_executor_token_host_gilab_ci }}"

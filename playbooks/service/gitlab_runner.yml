@@ -1,4 +1,11 @@
 ---
+# Shell gitlab runner (Runs natively on the host, good for running podman to build container images)
 - hosts: gitlab_runner
   roles:
     - gitlab_runner
+
+# Docker gitlab runner
+# TODO: Run under rootless podman
+- hosts: docker_gitlab_runner
+  roles:
+    - docker_gitlab_runner
