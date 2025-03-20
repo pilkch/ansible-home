@@ -1,2 +1,4 @@
 ---
+# Gitlab runner
+gitlab_runner_executor_name: cpp-docker # The name of this executor
 gitlab_runner_executor_token: "{{ gitlab_runner_executor_token_host_gilab_ci }}"

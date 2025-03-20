@@ -1,0 +1,3 @@
+---
+gitlab_runner_user: gitlab-runner
+gitlab_runner_group: gitlab-runner

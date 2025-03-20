@@ -1,0 +1,87 @@
+---
+# Add the gitlab-runner repo and install the rpm
+- block:
+  - name: Add gitlab-runner repo
+    ansible.builtin.yum_repository:
+      name: gitlab-runner
+      description: gitlab-runner repo
+      file: gitlab_runner
+      baseurl: "https://packages.gitlab.com/runner/gitlab-runner/{{ ansible_distribution | lower }}/{{ ansible_distribution_version }}/$basearch"
+      repo_gpgcheck: false
+      gpgcheck: true
+      gpgkey:
+        - https://packages.gitlab.com/runner/gitlab-runner/gpgkey
+        - https://packages.gitlab.com/runner/gitlab-runner/gpgkey/runner-gitlab-runner-4C80FB51394521E9.pub.gpg
+        - https://packages.gitlab.com/runner/gitlab-runner/gpgkey/runner-gitlab-runner-49F16C5CC3A0F81F.pub.gpg
+      enabled: yes
+      sslverify: true
+      sslcacert: /etc/pki/tls/certs/ca-bundle.crt
+      metadata_expire: 300
+
+  # NOTE: Unfortunately only the latest version is kept, so we can't pick a version, we get what we get and we don't get upset
+  - name: Install gitlab-runner
+    ansible.builtin.package:
+      name:
+        - gitlab-runner-helper-images
+        - gitlab-runner
+      state: present
+    notify: Restart gitlab-runner shell
+
+  become: true
+
+# User and group
+- block:
+  - name: Create gitlab-runner group
+    group:
+      name: "{{ gitlab_runner_group }}"
+
+  - name: Create gitlab-runner user
+    user:
+      name: "{{ gitlab_runner_user }}"
+      password: "{{ gitlab_runner_user_password | password_hash('sha512') }}"
+      update_password: always
+      groups: "{{ gitlab_runner_group }}"
+      append: yes
+
+  become: true
+
+# Copy gitlab runner configuration
+- block:
+  - name: Create the gitlab-runner .gitlab-runner directory
+    file:
+      path: "/home/{{ gitlab_runner_user }}/.gitlab-runner"
+      owner: "{{ gitlab_runner_user }}"
+      group: "{{ gitlab_runner_group }}"
+      mode: '0750'
+      state: directory
+
+  - name: Create the gitlab-runner config directory
+    file:
+      path: "/home/{{ gitlab_runner_user }}/.gitlab-runner/certs"
+      owner: "{{ gitlab_runner_user }}"
+      group: "{{ gitlab_runner_group }}"
+      mode: '0750'
+      state: directory
+
+  - name: Copy gitlab-runner self-signed certificate
+    ansible.builtin.template:
+      src: gitlab-server.crt.j2
+      dest: "/home/{{ gitlab_runner_user }}/.gitlab-runner/certs/{{ gitlab_fqdn }}.crt"
+      owner: "{{ gitlab_runner_user }}"
+      group: "{{ gitlab_runner_group }}"
+      mode: '0640'
+    notify: Restart gitlab-runner shell
+
+  become: true
+  become_user: "{{ gitlab_runner_user }}"
+
+
+# Set up rootless podman (Assuming you want to run rootless podman within the shell runner)
+# Call from podman_container/tasks/apply_user_settings.yml
+- name: Set up podman for the gitlab-runner user
+  ansible.builtin.include_role:
+    name: podman_container
+    tasks_from: apply_user_settings
+  vars:
+    container_user: "{{ gitlab_runner_user }}"
+    container_group: "{{ gitlab_runner_group }}"
