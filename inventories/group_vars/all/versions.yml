@@ -31,7 +31,7 @@ gitlab_version: 17.3.7
 
 # Gitlab runner
 # NOTE: These don't necessarily match the exact Gitlab server version, but we should at least match the major version https://hub.docker.com/r/gitlab/gitlab-runner/tags
-gitlab_runner_version: 16.11.1
+gitlab_runner_version: "{{ gitlab_version }}"
 gitlab_runner_executor_docker_image: fedora-development:39-1 # The docker image that jobs run in (Fedora 39, with a minor version for Dockerfile changes)
 
 home_assistant_version: 2024.12

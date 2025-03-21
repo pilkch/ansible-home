@@ -8,6 +8,7 @@ fileserver_network_home_samba_username: chris
 gitlab_fqdn: gitlab.network.home
 gitlab_https_port: 2443
 gitlab_url: "https://{{ gitlab_fqdn }}:{{ gitlab_https_port }}/"
+gitlab_registry_port: 5050
 
 # Home Assistant
 # Change these to suit your location
