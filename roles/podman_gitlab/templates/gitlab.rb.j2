@@ -5,3 +5,10 @@ external_url 'https://{{ gitlab_fqdn }}:{{ gitlab_https_port }}/'
 nginx['ssl_certificate'] = "/etc/gitlab/ssl/{{ gitlab_fqdn }}.crt"
 nginx['ssl_certificate_key'] = "/etc/gitlab/ssl/{{ gitlab_fqdn }}.key"
 nginx['ssl_protocols'] = "TLSv1.3"
+
+{% if gitlab_registry_port is defined %}
+# Private Gitlab hosted container image registry (Allows us to push and pull images from within a .gitlab-ci.yml job, or pull images via ansible (With the right credentials))
+registry['enable'] = true
+registry_external_url "https://{{ gitlab_fqdn }}:{{ gitlab_registry_port }}/"
+registry['token_realm'] = "https://{{ gitlab_fqdn }}:{{ gitlab_https_port }}/"
+{% endif %}

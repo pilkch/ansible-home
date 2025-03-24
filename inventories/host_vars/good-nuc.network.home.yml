@@ -1,0 +1,4 @@
+---
+# Gitlab runner
+gitlab_runner_executor_name: shell # The name of this executor
+gitlab_runner_executor_token: "{{ gitlab_runner_executor_token_host_good_nuc }}"

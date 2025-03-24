@@ -93,9 +93,15 @@
     group: "{{ gitlab_container_group }}"
     mode: 0644
     backup: true
+  register: gitlab_configuration_file
   become: true
   become_user: "{{ gitlab_container_user }}"
 
+- name: Set variable to restart gitlab service
+  ansible.builtin.set_fact:
+    _service_systemd_state: restarted
+  when:
+    - gitlab_configuration_file is changed
 
 # For reference, this is the docker-compose.yml we are trying to recreate
 #---
@@ -132,6 +138,7 @@
       --env 'SSL_SELF_SIGNED=true'
       -p {{ gitlab_https_port }}:2443/tcp
       -p 2080:80/tcp
+      -p {{ gitlab_registry_port }}:5050/tcp
       -p {{ gitlab_ssh_port }}:22/tcp
       -v "{{ gitlab_volumes_basedir }}/config:/etc/gitlab:Z"
       -v "{{ gitlab_volumes_basedir }}/logs:/var/log/gitlab:Z"
@@ -142,6 +149,7 @@
       --group-add keep-groups
     container_firewall_ports:
       - "{{ gitlab_https_port }}/tcp"
+      - "{{ gitlab_registry_port }}/tcp"
       - "{{ gitlab_ssh_port }}/tcp"
 
   import_role:

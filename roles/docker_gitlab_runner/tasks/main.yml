@@ -1,0 +1,9 @@
+---
+- name: Install docker
+  ansible.builtin.import_tasks: install-docker.yml
+
+- name: Build Fedora development image
+  ansible.builtin.import_tasks: build-fedora-development-image.yml
+
+- name: Install gitlab runner docker executor
+  ansible.builtin.import_tasks: install-gitlab-runner.yml

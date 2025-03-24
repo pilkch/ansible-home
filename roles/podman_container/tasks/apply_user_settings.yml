@@ -1,0 +1,49 @@
+---
+# Set up subuid and subgid mappings
+- block:
+  - name: Add user to subuid file
+    ansible.builtin.lineinfile:
+      path: /etc/subuid
+      regexp: "^{{ container_user }}:.*"
+      line: "{{ container_user }}:165536:65536"
+      create: true
+      mode: '0644'
+      owner: root
+      group: root
+    register: set_subuid
+
+  - name: Add group to subgid file
+    ansible.builtin.lineinfile:
+      path: /etc/subgid
+      regexp: "^{{ container_group }}:.*"
+      line: "{{ container_group }}:165536:65536"
+      create: true
+      mode: '0644'
+      owner: root
+      group: root
+    register: set_subgid
+
+  become: true
+
+# https://docs.podman.io/en/latest/markdown/podman-system-migrate.1.html
+# NOTE: Technically we are meant to stop any running containers before doing this, but we typically only change the subuid and subgid before starting any containers
+#- name: Migrate podman containers
+#  ansible.builtin.command: "podman system migrate"
+#  become: true
+#  become_user: "{{ container_user }}"
+#  when: (set_subuid.changed or set_subgid.changed)
+
+
+# Enable lingering
+- block:
+  - name: Check if user is lingering
+    ansible.builtin.stat:
+      path: "/var/lib/systemd/linger/{{ container_user }}"
+    register: user_lingering
+
+  - name: Enable lingering if needed
+    ansible.builtin.command: "loginctl enable-linger {{ container_user }}"
+    when:
+      - not user_lingering.stat.exists
+
+  become: true

@@ -9,7 +9,6 @@
       mode: 770
     notify: Restart gitlab-runner container
 
-  # TODO: Move this to an ansible vault
   - name: Copy gitlab-runner self-signed certificate
     ansible.builtin.template:
       src: gitlab-server.crt.j2
