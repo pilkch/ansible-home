@@ -1,0 +1,202 @@
+---
+- set_fact:
+    tasktracker_volumes_basedir: "/home/{{ tasktracker_container_user }}/srv/tasktracker"
+    tasktracker_podman_cert_dir: "/home/{{ tasktracker_container_user }}/.config/certs/"
+
+# User and group
+- block:
+  - name: "Create tasktracker group"
+    group:
+      name: "{{ tasktracker_container_group }}"
+
+  - name: "Create tasktracker user"
+    user:
+      name: "{{ tasktracker_container_user }}"
+      password: "{{ tasktracker_container_user_password | password_hash('sha512') }}"
+      update_password: always
+      groups: "{{ tasktracker_container_group }}"
+      append: yes
+
+  become: true
+
+
+- block:
+  # Create folders
+  - name: Create the configuration and feed_data folders for tasktracker
+    file:
+      path: "{{ tasktracker_volumes_basedir }}/{{ item }}"
+      owner: "{{ tasktracker_container_user }}"
+      group: "{{ tasktracker_container_group }}"
+      state: directory
+    with_items:
+      - configuration
+      - feed_data
+
+  # Copy configuration file
+  - name: Add tasktracker configuration.json
+    ansible.builtin.template:
+      src: configuration.json.j2
+      dest: "{{ tasktracker_volumes_basedir }}/configuration/configuration.json"
+      owner: "{{ tasktracker_container_user }}"
+      group: "{{ tasktracker_container_group }}"
+      mode: 0640
+      backup: true
+
+  # Copy configuration file
+  - name: Add tasktracker gitlab server certificate
+    ansible.builtin.template:
+      src: gitlab-server.crt.j2
+      dest: "{{ tasktracker_volumes_basedir }}/configuration/{{ gitlab_fqdn }}.crt"
+      owner: "{{ tasktracker_container_user }}"
+      group: "{{ tasktracker_container_group }}"
+      mode: 0640
+
+  become: true
+  become_user: "{{ tasktracker_container_user }}"
+
+
+# Generate Self-Signed SSL Certificates
+- block:
+  - name: Check if public certificate exists
+    stat:
+      path: "{{ tasktracker_volumes_basedir }}/configuration/{{ tasktracker_fqdn }}.crt"
+    register: public_certificate
+
+  - name: Check if private key exists
+    stat:
+      path: "{{ tasktracker_volumes_basedir }}/configuration/{{ tasktracker_fqdn }}.key"
+    register: private_key
+
+  - block:
+    - name: Generate a self-signed private key
+      community.crypto.openssl_privatekey:
+        path: "{{ tasktracker_volumes_basedir }}/configuration/{{ tasktracker_fqdn }}.key"
+        size: 4096
+        mode: 0600
+        type: RSA
+        state: present
+
+    - name: Create certificate signing request (CSR) for self-signed certificate
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: "{{ tasktracker_volumes_basedir }}/configuration/{{ tasktracker_fqdn }}.key"
+        common_name: "{{ tasktracker_fqdn }}"
+        organization_name: "{{ tasktracker_cert_organization_name }}"
+      register: csr
+
+    - name: Generate a self-signed SSL/TLS certificate (valid for 10 years)
+      community.crypto.x509_certificate:
+        path: "{{ tasktracker_volumes_basedir }}/configuration/{{ tasktracker_fqdn }}.crt"
+        privatekey_path: "{{ tasktracker_volumes_basedir }}/configuration/{{ tasktracker_fqdn }}.key"
+        csr_content: "{{ csr.csr }}"
+        provider: selfsigned
+        selfsigned_not_after: "+3650d"
+        mode: 0644
+
+    when: (not public_certificate.stat.exists) or (not private_key.stat.exists)
+
+  become: true
+  become_user: "{{ tasktracker_container_user }}"
+
+
+# Set up rootless podman
+# Call from podman_container/tasks/apply_user_settings.yml
+- name: Set up podman for the task-tracker user
+  ansible.builtin.include_role:
+    name: podman_container
+    tasks_from: apply_user_settings
+  vars:
+    container_user: "{{ tasktracker_container_user }}"
+    container_group: "{{ tasktracker_container_group }}"
+
+
+# For reference, these are the podman commands that we are trying to recreate
+# Set up podman to use our gitlab registry:
+# mkdir ~/.config/certs
+# mv gitlab.network.home.crt ~/.config/certs/
+# podman login --cert-dir ~/.config/certs/ --authfile $HOME/.config/containers/auth.json --user "chris" --password "mysupersecretpassword" gitlab.network.home:5050
+# Pull the image:
+# podman pull --cert-dir ~/.config/certs/ gitlab.network.home:5050/dev/public/task-tracker:latest
+# Run task-tracker
+# cd ~/tasktracker
+# podman run --init -v ./configuration:/root/task-tracker/configuration:ro,z -v ./feed_data:/root/task-tracker/feed_data:z \
+#   --network slirp4netns:allow_host_loopback=true -p 192.168.0.3:8443:8443 --shm-size 256m --name tasktracker --rm fedora:tasktracker
+#
+
+# Login and pull the task-tracker image
+- block:
+  - name: Create the podman certificates directory
+    file:
+      path: "{{ tasktracker_podman_cert_dir }}"
+      owner: "{{ tasktracker_container_user }}"
+      group: "{{ tasktracker_container_group }}"
+      state: directory
+
+  - name: Add tasktracker gitlab server certificate
+    ansible.builtin.template:
+      src: gitlab-server.crt.j2
+      dest: "{{ tasktracker_podman_cert_dir }}/{{ gitlab_fqdn }}.crt"
+      owner: "{{ tasktracker_container_user }}"
+      group: "{{ tasktracker_container_group }}"
+      mode: 0640
+
+  - name: Login to gitlab container registry
+    containers.podman.podman_login:
+      registry: "{{ gitlab_fqdn }}:{{ gitlab_registry_port }}"
+      tlsverify: true
+      certdir: "{{ tasktracker_podman_cert_dir }}"
+      username: "{{ gitlab_container_registry_user }}"
+      password: "{{ gitlab_container_registry_token }}"
+
+  - name: Pull the tasktracker image
+    containers.podman.podman_image:
+      name: "{{ gitlab_fqdn }}:{{ gitlab_registry_port }}/dev/public/task-tracker"
+      tag: latest
+      validate_certs: true
+      ca_cert_dir: "{{ tasktracker_podman_cert_dir }}"
+
+  become: true
+  become_user: "{{ tasktracker_container_user }}"
+
+# Create the systemd quadlet file which will use the task-tracker image
+- block:
+  - name: Create a Quadlet file
+    containers.podman.podman_container:
+      name: task-tracker
+      image: "{{ gitlab_fqdn }}:{{ gitlab_registry_port }}/dev/public/task-tracker:latest"
+      state: quadlet
+      quadlet_filename: task-tracker
+      quadlet_file_mode: '0640'
+      ports:
+        - "{{ tasktracker_https_port }}:{{ tasktracker_https_port }}/tcp"
+      volumes:
+        - "{{ tasktracker_volumes_basedir }}/configuration:/root/task-tracker/configuration:z"
+        - "{{ tasktracker_volumes_basedir }}/feed_data:/root/task-tracker/feed_data:z"
+      quadlet_options:
+        - "AutoUpdate=registry"
+        - "Pull=newer"
+        - |
+          [Install]
+          WantedBy=default.target
+
+  - name: Reload systemd services
+    ansible.builtin.systemd_service:
+      scope: user
+      daemon_reload: true
+
+  - name: Start the task-tracker service
+    ansible.builtin.systemd_service:
+      name: task-tracker
+      state: started
+      scope: user
+
+  become: true
+  become_user: "{{ tasktracker_container_user }}"
+
+# Firewall
+- name: Open firewall ports
+  ansible.posix.firewalld:
+    port: "{{ tasktracker_https_port }}/tcp"
+    permanent: true
+    immediate: true
+    state: enabled
+  become: true
