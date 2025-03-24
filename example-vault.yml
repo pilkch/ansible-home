@@ -1,6 +1,7 @@
 ---
 # This is an example ansible vault file. Check the README.md for instructions on how to set it up and use it.
 
+# Github
 git_public_certificate_signature_line: "ssh-ed25519 AAAAChangeMeDlksdfjisdfklnFDNKLSDJ/KXYRM3wN62eLjsdfjkIODSCnkDSJFKLE changeme@email.com"
 git_private_key: |
   -----BEGIN CERTIFICATE-----
@@ -13,10 +14,11 @@ gitlab_server_certificate: |
   -----BEGIN CERTIFICATE-----
   changeme
   -----END CERTIFICATE-----
+gitlab_container_registry_token: glpat-changemeNSDKFjhsdjis # For access to the gitlab container registry from another host (For podman to login to the gitlab registry and pull images)
 
 # Gitlab runner
 gitlab_runner_user_password: changeme # For the shell gitlab runner user
-gitlab_runner_executor_token_host_gilab_ci: ChangeMe2mkxDxL3-gVOEPx
+gitlab_runner_executor_token_host_gitlab_ci: ChangeMe2mkxDxL3-gVOEPx
 gitlab_runner_executor_token_host_good_nuc: ChangeMe2zxcj358-sgw53f
 
 # Samba share
