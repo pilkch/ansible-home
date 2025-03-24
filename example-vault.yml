@@ -32,6 +32,12 @@ tandoor_container_user_password: changeme
 tandoor_secret_key: ChangeMeSdjfiojZFvcnknCfkdCsd835sdsdfjk
 tandoor_postgres_password: changeme
 
+# Task-tracker
+tasktracker_container_user_password: changeme
+# Generated with `openssl rand -base64 48`
+tasktracker_token: ChangeMe000nZ6a7Choc7khw0S37F9VX4jHywcRlQvYf6FZtJk1HAcFsQe/5X1l
+tasktracker_gitlab_api_token: glfgi-changemeCJIO58FD348s
+
 # Vaultwarden
 # Generated with `openssl rand -base64 48`
 vaultwarden_admin_token: ChangeMe000nZ6a7Choc7khw0S37F9VX4jHywcRlQvYf6FZtJk1HAcFsQe/5X1l

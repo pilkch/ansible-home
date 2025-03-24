@@ -1,0 +1,14 @@
+{
+  "settings": {
+    "running_in_container": true,
+    "ip": "0.0.0.0",
+    "port": {{ tasktracker_https_port }},
+    "external_url": "https://{{ tasktracker_fqdn }}:{{ tasktracker_https_port }}/",
+    "https_private_key": "./configuration/{{ tasktracker_fqdn }}.key",
+    "https_public_cert": "./configuration/{{ tasktracker_fqdn }}.crt",
+    "token": "{{ tasktracker_token }}",
+    "gitlab_url": "https://{{ gitlab_fqdn }}:{{ gitlab_https_port }}/",
+    "gitlab_api_token": "{{ tasktracker_gitlab_api_token }}",
+    "gitlab_https_public_cert": "./configuration/{{ gitlab_fqdn }}.crt"
+  }
+}
