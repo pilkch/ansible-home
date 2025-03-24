@@ -1,12 +1,5 @@
 ---
-# Install podman
-- name: Ensure podman is installed
-  ansible.builtin.package:
-    name:
-      - podman
-      - podman-compose
-    state: present
-  become: true
+# NOTE: We assume that the podman role has been run and both podman and podman-compose have been installed
 
 
 # User and Group
@@ -42,8 +35,8 @@
   when: group_info.name is not defined
 
 
-- name: Update subuid and subgid entries
-  ansible.builtin.import_tasks: update_subid.yml
+- name: Set up the user settings for using podman
+  ansible.builtin.import_tasks: apply_user_settings.yml
 
 
 # Directories
@@ -67,24 +60,13 @@
   changed_when: false
 
 
-# Container
+# Systemd service for the container
 - block:
   - name: Set internal variables
     ansible.builtin.set_fact:
       _service_systemd_state: started
       _container_run_args: "{{ container_run_args | default('') }}"
     changed_when: false
-
-  - name: Check if user is lingering
-    ansible.builtin.stat:
-      path: "/var/lib/systemd/linger/{{ container_user }}"
-    register: user_lingering
-
-  - name: Enable lingering is needed
-    ansible.builtin.command: "loginctl enable-linger {{ container_user }}"
-    become: true
-    when:
-      - not user_lingering.stat.exists
 
   - name: Convert container_run_args list to string
     ansible.builtin.set_fact:

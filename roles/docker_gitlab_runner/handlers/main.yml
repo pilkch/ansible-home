@@ -1,0 +1,29 @@
+---
+- name: Restart docker
+  service:
+    name: docker
+    state: restarted
+  become: true
+
+- name: Restart gitlab-runner container block
+  block:
+    - name: Stop gitlab-runner container
+      shell: docker stop gitlab-runner
+      ignore_errors: true
+      listen: "Restart gitlab-runner container"
+
+    - name: Remove gitlab-runner container
+      shell: docker rm gitlab-runner
+      ignore_errors: true
+      listen: "Restart gitlab-runner container"
+
+    - name: Start gitlab-runner container
+      shell: "docker run -d --name gitlab-runner --restart always \
+        -v /srv/gitlab-runner/config:/etc/gitlab-runner:Z \
+        -v /srv/gitlab-runner/certs/{{ gitlab_fqdn }}.crt:/etc/gitlab-runner/certs/{{ gitlab_fqdn }}.crt:Z \
+        -v /var/run/docker.sock:/var/run/docker.sock:Z \
+        -e \"CA_CERTIFICATES_PATH=/etc/gitlab-runner/certs/{{ gitlab_fqdn }}.crt\" \
+        gitlab/gitlab-runner:v{{ gitlab_runner_version }}"
+      listen: "Restart gitlab-runner container"
+
+  become: true

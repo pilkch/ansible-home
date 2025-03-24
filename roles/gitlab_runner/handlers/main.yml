@@ -1,29 +1,33 @@
 ---
-- name: Restart docker
-  service:
-    name: docker
-    state: restarted
-  become: true
-
-- name: Restart gitlab-runner container block
+# NOTE: We use listen to run multiple handlers at once
+# https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_handlers.html#naming-handlers
+- name: Restart gitlab-runner shell block
   block:
-    - name: Stop gitlab-runner container
-      shell: docker stop gitlab-runner
+    - name: Stop gitlab-runner shell
+      shell:
+        cmd: "gitlab-runner stop"
+        chdir: "/home/{{ gitlab_runner_user }}/"
       ignore_errors: true
-      listen: "Restart gitlab-runner container"
+      listen: "Restart gitlab-runner shell"
 
-    - name: Remove gitlab-runner container
-      shell: docker rm gitlab-runner
-      ignore_errors: true
-      listen: "Restart gitlab-runner container"
+    # Register the gitlab runner with the gitlab server
+    - name: Register the gitlab-runner shell
+      ansible.builtin.shell:
+        cmd: gitlab-runner register --non-interactive --url "{{ gitlab_url }}/" --token "{{ gitlab_runner_executor_token }}" --executor "{{ gitlab_runner_executor_name }}" --description "{{ gitlab_runner_executor_name }}" --tls-ca-file "/home/{{ gitlab_runner_user }}/.gitlab-runner/certs/{{ gitlab_fqdn }}.crt" --config "/home/{{ gitlab_runner_user }}/.gitlab-runner/config.toml"
+        chdir: "/home/{{ gitlab_runner_user }}/"
+      listen: "Restart gitlab-runner shell"
 
-    - name: Start gitlab-runner container
-      shell: "docker run -d --name gitlab-runner --restart always \
-        -v /srv/gitlab-runner/config:/etc/gitlab-runner:Z \
-        -v /srv/gitlab-runner/certs/{{ gitlab_fqdn }}.crt:/etc/gitlab-runner/certs/{{ gitlab_fqdn }}.crt:Z \
-        -v /var/run/docker.sock:/var/run/docker.sock:Z \
-        -e \"CA_CERTIFICATES_PATH=/etc/gitlab-runner/certs/{{ gitlab_fqdn }}.crt\" \
-        gitlab/gitlab-runner:v{{ gitlab_runner_version }}"
-      listen: "Restart gitlab-runner container"
+    - name: Install gitlab-runner shell
+      shell:
+        cmd: gitlab-runner install --user --config "/home/{{ gitlab_runner_user }}/.gitlab-runner/config.toml"
+        chdir: "/home/{{ gitlab_runner_user }}/"
+      listen: "Restart gitlab-runner shell"
+
+    - name: Start gitlab-runner shell
+      shell:
+        cmd: gitlab-runner run --user --config "/home/{{ gitlab_runner_user }}/.gitlab-runner/config.toml"
+        chdir: "/home/{{ gitlab_runner_user }}/"
+      listen: "Restart gitlab-runner shell"
 
   become: true
+  become_user: "{{ gitlab_runner_user }}"

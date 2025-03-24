@@ -8,10 +8,7 @@ fileserver_network_home_samba_username: chris
 gitlab_fqdn: gitlab.network.home
 gitlab_https_port: 2443
 gitlab_url: "https://{{ gitlab_fqdn }}:{{ gitlab_https_port }}/"
-
-# Gitlab runner
-gitlab_runner_executor_name: cpp-docker # The name of this executor
-gitlab_runner_executor_docker_image: fedora-development:39-1 # The docker image that jobs run in (Fedora 39, with a minor version for Dockerfile changes)
+gitlab_registry_port: 5050
 
 # Home Assistant
 # Change these to suit your location

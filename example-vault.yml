@@ -15,7 +15,9 @@ gitlab_server_certificate: |
   -----END CERTIFICATE-----
 
 # Gitlab runner
-gitlab_runner_executor_token: ChangeMe2mkxDxL3-gVOEPx
+gitlab_runner_user_password: changeme # For the shell gitlab runner user
+gitlab_runner_executor_token_host_gilab_ci: ChangeMe2mkxDxL3-gVOEPx
+gitlab_runner_executor_token_host_good_nuc: ChangeMe2zxcj358-sgw53f
 
 # Samba share
 fileserver_network_home_samba_password: changeme
