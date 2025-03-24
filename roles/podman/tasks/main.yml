@@ -6,6 +6,7 @@
         - firewalld
         - podman
         - podman-compose
+        - slirp4netns
       state: latest
 
   become: true
