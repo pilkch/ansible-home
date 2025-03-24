@@ -7,6 +7,7 @@
 
 - ansible.builtin.import_playbook: podman/gitlab.yml
 - ansible.builtin.import_playbook: podman/stirlingpdf.yml
+- ansible.builtin.import_playbook: podman/tasktracker.yml
 - ansible.builtin.import_playbook: podman/vaultwarden.yml
 - ansible.builtin.import_playbook: podman/homeassistant.yml
 - ansible.builtin.import_playbook: podman/tandoor.yml

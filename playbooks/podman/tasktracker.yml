@@ -1,0 +1,4 @@
+---
+- hosts: tasktracker
+  roles:
+    - podman_task-tracker

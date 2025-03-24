@@ -37,6 +37,7 @@ gitlab_runner_executor_docker_image: fedora-development:39-1 # The docker image 
 home_assistant_version: 2024.12
 stirlingpdf_version: latest-ultra-lite
 tandoor_version: 1.5.17
+tasktracker_version: latest
 
 # Vaultwarden
 # https://github.com/dani-garcia/vaultwarden/releases

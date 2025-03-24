@@ -1,0 +1,7 @@
+---
+tasktracker_container_user: task-tracker
+tasktracker_container_group: task-tracker
+
+tasktracker_cert_organization_name: "My Organisation"
+
+tasktracker_https_port: 8443

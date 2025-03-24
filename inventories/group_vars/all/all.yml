@@ -9,6 +9,7 @@ gitlab_fqdn: gitlab.network.home
 gitlab_https_port: 2443
 gitlab_url: "https://{{ gitlab_fqdn }}:{{ gitlab_https_port }}/"
 gitlab_registry_port: 5050
+gitlab_container_registry_user: chris # For access to the gitlab container registry from another host (For podman to login to the gitlab registry and pull images)
 
 # Home Assistant
 # Change these to suit your location
@@ -22,6 +23,9 @@ stirlingpdf_fqdn: pdf.network.home
 
 # Tandoor Recipes
 tandoor_fqdn: tandoor.network.home
+
+# Task-tracker
+tasktracker_fqdn: tasktracker.network.home
 
 # Vaultwarden
 vaultwarden_fqdn: vaultwarden.network.home
