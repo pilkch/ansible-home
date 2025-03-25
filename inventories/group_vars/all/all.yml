@@ -21,6 +21,10 @@ home_assistant_location_elevation: 40
 # StirlingPDF
 stirlingpdf_fqdn: pdf.network.home
 
+# syslog-ng
+syslogng_fqdn: syslog.network.home
+syslogng_server_port: 514 # I would use a non-standard port, but selinux complains, so it is either this or add an selinux rule to add an extra port to logger_t
+
 # Tandoor Recipes
 tandoor_fqdn: tandoor.network.home
 

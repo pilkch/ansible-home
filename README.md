@@ -2,6 +2,16 @@
 
 Ansible roles for deploying my home computers and servers.
 
+## Data Flows
+
+```mermaid
+flowchart TD
+    GLR(Gitlab Runner<br/>- podman build myimage:latest<br/>- podman push myimage:latest) --> |podman push myimage:latest| GL(Gitlab)
+
+    A(Ansible) --> H(Host<br/>- podman pull myimage:latest<br/>- quadlet myimage:latest)
+    GL --> |podman pull myimage:latest| H
+```
+
 ## Initial State
 
 Generally these playbooks require that the target physical or virtual machine has:

@@ -1,0 +1,8 @@
+---
+- hosts: syslog_ng_server
+  roles:
+    - syslog-ng_server
+
+- hosts: syslog_ng_client
+  roles:
+    - syslog-ng_client
