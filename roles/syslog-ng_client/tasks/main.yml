@@ -1,0 +1,66 @@
+---
+- block:
+  - set_fact:
+      syslogng_tls_cert_folder: /opt/syslog-ng/etc/syslog-ng/ca.d
+      syslogng_server_ip: "{{ hostvars['infrastructure.network.home'].ansible_host }}"
+
+  # Get the fingerprint from openssl
+  # openssl x509 -noout -hash -in ./mycert/unit_test_server.crt
+  # TODO: We need a replacement for the above command, I couldn't find it with the following ansible module though?
+  #- name: Get syslog-ng certificate information
+  #  community.crypto.x509_certificate_info:
+  #    content: "{{ syslogng_server_certificate }}"
+  #  register: result
+
+  #- name: Dump information
+  #  ansible.builtin.debug:
+  #    var: result
+
+  - name: Calculate syslog-ng server certificate hash
+    shell: "echo \"{{ syslogng_server_certificate }}\" | openssl x509 -noout -hash"
+    register: result
+
+  - set_fact:
+      syslogng_server_certificate_fingerprint: "{{ result.stdout }}"
+
+  delegate_to: localhost
+  connection: local
+
+
+- block:
+  - name: Install syslog-ng packages
+    ansible.builtin.package:
+      name:
+        - syslog-ng
+        - syslog-ng-http
+      state: latest
+    notify: Restart syslog-ng
+
+  - name: Copy syslog-ng forward_logs.conf file
+    ansible.builtin.template:
+      src: forward_logs.conf.j2
+      dest: /etc/syslog-ng/conf.d/forward_logs.conf
+      owner: root
+      group: root
+      mode: 0640
+    notify: Restart syslog-ng
+
+  - name: Create syslog-ng cert and key folders
+    ansible.builtin.file:
+      path: "{{ item }}"
+      state: directory
+      mode: '0740'
+    notify: Restart syslog-ng
+    with_items:
+      - "{{ syslogng_tls_cert_folder }}"
+
+  - name: Copy syslog-ng certificate
+    ansible.builtin.copy:
+      content: "{{ syslogng_server_certificate }}"
+      dest: "{{ syslogng_tls_cert_folder }}/{{ syslogng_server_certificate_fingerprint }}.0"
+      owner: root
+      group: root
+      mode: 0640
+    notify: Restart syslog-ng
+
+  become: true

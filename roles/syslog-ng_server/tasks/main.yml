@@ -1,0 +1,61 @@
+---
+- set_fact:
+    syslogng_tls_cert_folder: /opt/syslog-ng/etc/syslog-ng/cert.d
+    syslogng_tls_key_folder: /opt/syslog-ng/etc/syslog-ng/key.d
+  delegate_to: localhost
+  connection: local
+
+- block:
+  - name: Install syslog-ng packages
+    ansible.builtin.package:
+      name:
+        - syslog-ng
+        - syslog-ng-http
+      state: latest
+    notify: Restart syslog-ng
+
+  - name: Copy syslog-ng receive_logs.conf file
+    ansible.builtin.template:
+      src: receive_logs.conf.j2
+      dest: /etc/syslog-ng/conf.d/receive_logs.conf
+      owner: root
+      group: root
+      mode: '0640'
+    notify: Restart syslog-ng
+
+  - name: Create syslog-ng cert and key folders
+    ansible.builtin.file:
+      path: "{{ item }}"
+      state: directory
+      mode: '0740'
+    notify: Restart syslog-ng
+    with_items:
+      - "{{ syslogng_tls_cert_folder }}"
+      - "{{ syslogng_tls_key_folder }}"
+
+  - name: Copy syslog-ng certificate
+    ansible.builtin.copy:
+      content: "{{ syslogng_server_certificate }}"
+      dest: "{{ syslogng_tls_cert_folder }}/server.crt"
+      owner: root
+      group: root
+      mode: '0640'
+    notify: Restart syslog-ng
+
+  - name: Copy syslog-ng private key
+    ansible.builtin.copy:
+      content: "{{ syslogng_server_private_key }}"
+      dest: "{{ syslogng_tls_key_folder }}/server.key"
+      owner: root
+      group: root
+      mode: '0640'
+    notify: Restart syslog-ng
+
+  - name: Open syslog-ng firewall port
+    ansible.posix.firewalld:
+      port: "{{ syslogng_server_port }}/tcp"
+      permanent: true
+      immediate: true
+      state: enabled
+
+  become: true

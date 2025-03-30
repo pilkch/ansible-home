@@ -7,5 +7,6 @@
     #- ntp
     - update_firmware
 
+- ansible.builtin.import_playbook: service/syslog-ng.yml
 - ansible.builtin.import_playbook: service/gitlab_runner.yml
 - ansible.builtin.import_playbook: service/samba_server.yml

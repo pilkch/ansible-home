@@ -1,0 +1,6 @@
+---
+- name: Restart syslog-ng
+  ansible.builtin.systemd_service:
+    name: syslog-ng
+    state: restarted
+  become: true

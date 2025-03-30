@@ -1,0 +1,22 @@
+# Receive from remote clients
+
+source s_receive_syslog_ng_tls {
+    syslog(
+        ip({{ ansible_host }}) port({{ syslogng_server_port }})
+        transport("tls")
+        tls(
+            cert-file("/opt/syslog-ng/etc/syslog-ng/cert.d/server.crt")
+            key-file("/opt/syslog-ng/etc/syslog-ng/key.d/server.key")
+            peer-verify(optional-untrusted)
+        )
+    );
+};
+
+destination d_log_files {
+    file("/var/log/centralized/$HOST/$YEAR-$MONTH-$DAY.log" create_dirs(yes));
+};
+
+log {
+    source(s_receive_syslog_ng_tls);
+    destination(d_log_files);
+};
