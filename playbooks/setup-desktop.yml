@@ -5,6 +5,8 @@
     #- ntp
     - update_firmware
 
+- ansible.builtin.import_playbook: service/syslog-ng.yml
+
 - hosts: developer
   roles:
     - developer

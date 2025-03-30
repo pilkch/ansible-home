@@ -28,6 +28,16 @@ fileserver_network_home_samba_password: changeme
 stirlingpdf_container_user_password: changeme
 stirlingpdf_initial_login_password: changeme
 
+# Syslog-ng
+syslogng_server_certificate: |
+  -----BEGIN CERTIFICATE-----
+  changeme
+  -----END CERTIFICATE-----
+syslogng_server_private_key: |
+  -----BEGIN RSA PRIVATE KEY-----
+  changeme
+  -----END RSA PRIVATE KEY-----
+
 # Tandoor
 tandoor_container_user_password: changeme
 # random secret key, use for example `base64 /dev/urandom | head -c50` to generate one

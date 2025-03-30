@@ -1,0 +1,18 @@
+# Forward to a central server
+
+source s_journald {
+    systemd-journal(prefix(".SDATA.journald."));
+};
+
+destination s_send_syslog_ng_tls {
+    syslog(
+        {{ syslogng_server_ip }} port({{ syslogng_server_port }})
+        transport("tls")
+        tls(ca-dir("/opt/syslog-ng/etc/syslog-ng/ca.d"))
+    );
+};
+
+log {
+    source(s_sys); source(s_journald);
+    destination(s_send_syslog_ng_tls);
+};
