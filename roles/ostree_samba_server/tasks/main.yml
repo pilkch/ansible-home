@@ -1,0 +1,11 @@
+---
+# Install samba, we would have run something like:
+# rpm-ostree install -y --allow-inactive samba
+- name: Apply samba overlay package
+  community.general.rpm_ostree_pkg:
+    name: samba
+    state: present
+    apply_live: true
+  become: true
+
+  ... configuration

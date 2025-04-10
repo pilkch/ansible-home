@@ -1,0 +1,10 @@
+---
+# Install firewalld, we would have run something like:
+# rpm-ostree install -y --allow-inactive firewalld
+- name: Apply firewalld overlay package
+  community.general.rpm_ostree_pkg:
+    name: firewalld
+    state: present
+    apply_live: true
+
+... configuration

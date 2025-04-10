@@ -1,0 +1,13 @@
+---
+# WIP: I wanted to use ostree in Fedora CoreOS, IoT or Silverblue for a NAS/Samba server
+# The tasks I need are:
+# 1. Install, set up a user with SSH (Done, https://github.com/pilkch/coreos-home)
+# 2. If coreos then install firewall and allow SSH port in the firewall (Not done, ansible)
+# 3. Install python3 if not already installed from installing firewalld/firewall-cmd (Not done, ansible, might have to install python3 manually first before we can use ansible at all?)
+# 3. Allow samba port in the firewall (Not done, ansible)
+# 4. Mount the BTRFS volume under /var/home/chris/data by adding an entry to /etc/fstab, might have to then call mount to mount it (Not done, ansible)
+# 5a. Install samba with rpm_ostree_pkg (Done, ansible)
+# 5b. Configure samba (Not done, ansible)
+
+#- ansible.builtin.import_playbook: service/ostree_firewalld.yml
+#- ansible.builtin.import_playbook: service/ostree_samba_server.yml

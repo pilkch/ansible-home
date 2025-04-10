@@ -1,0 +1,8 @@
+---
+- hosts: ostree_sambaserver
+  roles:
+    - ostree_samba_server
+  vars:
+    samba_folder: "{{ fileserver_network_home_samba_folder }}"
+    samba_user: "{{ fileserver_network_home_samba_username }}"
+    samba_password: "{{ fileserver_network_home_samba_password }}"

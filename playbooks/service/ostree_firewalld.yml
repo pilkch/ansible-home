@@ -1,0 +1,4 @@
+---
+- hosts: ostree_firewalld
+  roles:
+    - ostree_firewalld
