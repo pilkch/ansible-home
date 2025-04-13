@@ -34,6 +34,7 @@ gitlab_version: 17.3.7
 gitlab_runner_version: "{{ gitlab_version }}"
 gitlab_runner_executor_docker_image: fedora-development:39-1 # The docker image that jobs run in (Fedora 39, with a minor version for Dockerfile changes)
 
+freshrss_version: latest
 home_assistant_version: 2024.12
 stirlingpdf_version: latest-ultra-lite
 tandoor_version: 1.5.17

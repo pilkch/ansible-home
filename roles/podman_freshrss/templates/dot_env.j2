@@ -1,0 +1,12 @@
+BASE_URL=https://{{ freshrss_fqdn }}:7443
+SERVER_DNS={{ freshrss_fqdn }}
+ADMIN_EMAIL=admin@example.net
+ADMIN_PASSWORD={{ freshrss_admin_password }}
+ADMIN_API_PASSWORD={{ freshrss_admin_api_password }}
+# Published port if running locally
+PUBLISHED_PORT={{ freshrss_internal_http_port }}
+# Database credentials (not relevant if using default SQLite database)
+DB_HOST=freshrss-db
+DB_BASE=freshrss
+DB_USER=freshrss
+DB_PASSWORD={{ freshrss_db_password }}

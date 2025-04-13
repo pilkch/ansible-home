@@ -24,6 +24,12 @@ gitlab_runner_executor_token_host_good_nuc: ChangeMe2zxcj358-sgw53f
 # Samba share
 fileserver_network_home_samba_password: changeme
 
+# FreshRSS
+freshrss_container_user_password: changeme
+freshrss_admin_password: changeme
+freshrss_admin_api_password: changeme
+freshrss_db_password: changeme
+
 # StirlingPDF
 stirlingpdf_container_user_password: changeme
 stirlingpdf_initial_login_password: changeme

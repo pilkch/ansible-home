@@ -1,0 +1,4 @@
+---
+- hosts: freshrss
+  roles:
+    - podman_freshrss

@@ -1,0 +1,48 @@
+---
+- block:
+  - name: Create the ssl folder
+    file:
+      path: "{{ freshrss_nginx_ssl }}"
+      owner: "{{ freshrss_container_user }}"
+      group: "{{ freshrss_container_group }}"
+      state: directory
+
+  - name: Check if public certificate exists
+    stat:
+      path: "{{ freshrss_nginx_ssl }}/fullchain.pem"
+    register: public_certificate
+
+  - name: Check if private key exists
+    stat:
+      path: "{{ freshrss_nginx_ssl }}/privkey.pem"
+    register: private_key
+
+  - block:
+    - name: Generate a self-signed private key
+      community.crypto.openssl_privatekey:
+        path: "{{ freshrss_nginx_ssl }}/privkey.pem"
+        size: 4096
+        mode: 0600
+        type: RSA
+        state: present
+
+    - name: Create certificate signing request (CSR) for self-signed certificate
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: "{{ freshrss_nginx_ssl }}/privkey.pem"
+        common_name: "{{ freshrss_fqdn }}"
+        organization_name: "{{ freshrss_cert_organization_name }}"
+      register: csr
+
+    - name: Generate a self-signed SSL/TLS certificate (valid for 10 years)
+      community.crypto.x509_certificate:
+        path: "{{ freshrss_nginx_ssl }}/fullchain.pem"
+        privatekey_path: "{{ freshrss_nginx_ssl }}/privkey.pem"
+        csr_content: "{{ csr.csr }}"
+        provider: selfsigned
+        selfsigned_not_after: "+3650d"
+        mode: 0644
+
+    when: (not public_certificate.stat.exists) or (not private_key.stat.exists)
+
+  become: true
+  become_user: "{{ freshrss_container_user }}"

@@ -1,0 +1,8 @@
+---
+freshrss_container_user: freshrss
+freshrss_container_group: freshrss
+
+freshrss_cert_organization_name: "My Organisation"
+
+freshrss_https_port: 7443
+freshrss_internal_http_port: 8080

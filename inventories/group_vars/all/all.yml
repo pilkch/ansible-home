@@ -4,6 +4,9 @@ fileserver_network_home_samba_folder: /data1
 fileserver_network_home_samba_username: chris
 #\\192.168.0.84\data
 
+# FreshRSS
+freshrss_fqdn: freshrss.network.home
+
 # Gitlab
 gitlab_fqdn: gitlab.network.home
 gitlab_https_port: 2443

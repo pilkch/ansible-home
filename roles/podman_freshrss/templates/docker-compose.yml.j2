@@ -1,0 +1,127 @@
+version: '3.9'
+
+services:
+  freshrss-db:
+    image: docker.io/postgres:16
+    container_name: freshrss-db
+    hostname: freshrss-db
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: 10m
+    user: {{ freshrss_uid }}:{{ freshrss_gid }}
+    x-podman:
+      uidmaps:
+        - "0:1:1"
+        - "{{ freshrss_uid }}:0:1"
+      gidmaps:
+        - "0:1:1"
+        - "{{ freshrss_gid }}:0:1"
+    group_add:
+      - keep-groups
+    volumes:
+      - ./db:/var/lib/postgresql/data:Z
+    environment:
+      POSTGRES_DB: ${DB_BASE:-freshrss}
+      POSTGRES_USER: ${DB_USER:-freshrss}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-freshrss}
+    command:
+      # Examples of PostgreSQL tuning.
+      # https://wiki.postgresql.org/wiki/Tuning_Your_PostgreSQL_Server
+      # When in doubt, skip and stick to default PostgreSQL settings.
+      - -c
+      - shared_buffers=1GB
+      - -c
+      - work_mem=32MB
+
+  freshrss-app:
+    image: docker.io/freshrss/freshrss:{{ freshrss_version }}
+    # Optional build section if you want to build the image locally:
+    container_name: freshrss-app
+    hostname: freshrss-app
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: 10m
+    depends_on:
+      - freshrss-db
+    user: 0:0
+    volumes:
+      # Recommended volume for FreshRSS persistent data such as configuration and SQLite databases
+      - ./data:/var/www/FreshRSS/data:Z
+      # Optional volume for storing third-party extensions
+      #- extensions:/var/www/FreshRSS/extensions
+      # Optional file providing custom global settings (used before a FreshRSS install)
+      #- ./config.custom.php:/var/www/FreshRSS/data/config.custom.php
+      # Optional file providing custom user settings (used before a new user is created)
+      #- ./config-user.custom.php:/var/www/FreshRSS/data/config-user.custom.php
+    ports:
+      - "{{ freshrss_internal_http_port }}:80"
+    environment:
+      # A timezone http://php.net/timezones (default is UTC)
+      TZ: 'Australia/Sydney'
+      # Cron job to refresh feeds at specified minutes
+      CRON_MIN: '2,32'
+      # 'development' for additional logs; default is 'production'
+      FRESHRSS_ENV: development
+      # Optional advanced parameter controlling the internal Apache listening port
+      LISTEN: 0.0.0.0:80
+      # Optional parameter, remove for automatic settings, set to 0 to disable,
+      # or (if you use a proxy) to a space-separated list of trusted IP ranges
+      # compatible with https://httpd.apache.org/docs/current/mod/mod_remoteip.html#remoteipinternalproxy
+      # This impacts which IP address is logged (X-Forwarded-For or REMOTE_ADDR).
+      # This also impacts external authentication methods;
+      # see https://freshrss.github.io/FreshRSS/en/admins/09_AccessControl.html
+      TRUSTED_PROXY: 172.16.0.1/12 192.168.0.1/16
+      # Optional parameter, set to 1 to enable OpenID Connect (only available in our Debian image)
+      # Requires more environment variables. See https://freshrss.github.io/FreshRSS/en/admins/16_OpenID-Connect.html
+      OIDC_ENABLED: 0
+      # Optional auto-install parameters (the Web interface install is recommended instead):
+      # ⚠️ Parameters below are only used at the very first run (so far).
+      # So if changes are made (or in .env file), first delete the service and volumes.
+      # ℹ️ All the --db-* parameters can be omitted if using built-in SQLite database.
+      FRESHRSS_INSTALL: |-
+        --api-enabled
+        --base-url ${BASE_URL}
+        --db-base ${DB_BASE}
+        --db-host ${DB_HOST}
+        --db-password ${DB_PASSWORD}
+        --db-type pgsql
+        --db-user ${DB_USER}
+        --default-user admin
+        --language en
+      FRESHRSS_USER: |-
+        --api-password ${ADMIN_API_PASSWORD}
+        --email ${ADMIN_EMAIL}
+        --language en
+        --password ${ADMIN_PASSWORD}
+        --user admin
+
+  freshrss-nginx:
+    image: docker.io/library/nginx:mainline-alpine
+    container_name: freshrss-nginx
+    hostname: freshrss-nginx
+    restart: unless-stopped
+    depends_on:
+      - freshrss-app
+    user: {{ freshrss_uid }}:{{ freshrss_gid }}
+    x-podman:
+      uidmaps:
+        - "0:1:1"
+        - "{{ freshrss_uid }}:0:1"
+      gidmaps:
+        - "0:1:1"
+        - "{{ freshrss_gid }}:0:1"
+    group_add:
+      - keep-groups
+    volumes:
+      # NOTE: We have to replace the whole conf.d folder because it contains a default.conf file which tries to host something on port 80, we want to wipe that out and only use our config file
+      - ./nginx_config:/etc/nginx/conf.d:Z
+      # NOTE: This is a very heavy handed way of allowing nginx to write to /var/run/nginx.pid
+      # We should probably just use something like this instead https://github.com/nginxinc/docker-nginx-unprivileged/blob/04c3e28281cf2d19b52e953bb3386412bff0cea2/mainline/alpine-slim/Dockerfile#L117
+      # TODO: Maybe /var/run and /var/cache should be volumes?
+      - ./nginx_var_run:/var/run:Z
+      - ./nginx_cache:/var/cache/nginx:Z
+      - ./nginx_ssl:/etc/nginx/ssl:Z
+    ports:
+      - {{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}:{{ freshrss_https_port }}:{{ freshrss_https_port }}

@@ -1,0 +1,109 @@
+---
+- ansible.builtin.set_fact:
+    freshrss_compose_basedir: "/home/{{ freshrss_container_user }}/srv/freshrss"
+
+- ansible.builtin.set_fact:
+    freshrss_nginx_config: "{{ freshrss_compose_basedir }}/nginx_config"
+    freshrss_nginx_ssl: "{{ freshrss_compose_basedir }}/nginx_ssl"
+
+# User and group
+- block:
+  - name: "Create freshrss group"
+    group:
+      name: "{{ freshrss_container_group }}"
+
+  - name: "Create freshrss user"
+    user:
+      name: "{{ freshrss_container_user }}"
+      password: "{{ freshrss_container_user_password | password_hash('sha512') }}"
+      update_password: always
+      groups: "{{ freshrss_container_group }}"
+      append: yes
+
+  become: true
+
+
+# Create folders
+- name: Create the data folders for freshrss
+  file:
+    path: "{{ freshrss_compose_basedir }}/{{ item }}"
+    owner: "{{ freshrss_container_user }}"
+    group: "{{ freshrss_container_group }}"
+    state: directory
+  with_items:
+    - db
+    - data
+    - nginx_config
+    - nginx_ssl
+    - nginx_cache
+    - nginx_var_run
+  become: true
+  become_user: "{{ freshrss_container_user }}"
+
+
+# Create new self signed certificates if they aren't present yet
+- name: Create self signed certificates
+  ansible.builtin.import_tasks: create-self-signed-certificates.yml
+
+# NOTE: This can take a while and time out on lesser hardware such as a Pi or NUC, so you might have to generate this locally on the ansible controller, then push it to the host
+- name: Generate dhparams.pem
+  community.crypto.openssl_dhparam:
+    path: "{{ freshrss_nginx_ssl }}/dhparams.pem"
+    size: 4096
+  become: true
+  become_user: "{{ freshrss_container_user }}"
+
+# Get the user id and group id
+- block:
+  - ansible.builtin.getent:
+      database: passwd
+
+  - ansible.builtin.getent:
+      database: group
+
+  - ansible.builtin.set_fact:
+      freshrss_uid: "{{ getent_passwd[freshrss_container_user].1 }}"
+      freshrss_gid: "{{ getent_group[freshrss_container_group].1 }}"
+
+- name: Copy nginx freshrss.conf file
+  ansible.builtin.template:
+    src: nginx_freshrss.conf.j2
+    dest: "{{ freshrss_nginx_config }}/freshrss.conf"
+    owner: "{{ freshrss_container_user }}"
+    group: "{{ freshrss_container_group }}"
+    mode: 0600
+  become: true
+  become_user: "{{ freshrss_container_user }}"
+
+- name: Copy freshrss docker-compose.yml file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ freshrss_compose_basedir }}/docker-compose.yml"
+    owner: "{{ freshrss_container_user }}"
+    group: "{{ freshrss_container_group }}"
+    mode: 0600
+  become: true
+  become_user: "{{ freshrss_container_user }}"
+
+- name: Copy freshrss .env file
+  ansible.builtin.template:
+    src: dot_env.j2
+    dest: "{{ freshrss_compose_basedir }}/.env"
+    owner: "{{ freshrss_container_user }}"
+    group: "{{ freshrss_container_group }}"
+    mode: 0600
+  become: true
+  become_user: "{{ freshrss_container_user }}"
+
+- name: Create the freshrss container
+  vars:
+    container_user: "{{ freshrss_container_user }}"
+    container_group: "{{ freshrss_container_group }}"
+    systemd_TimeoutStartSec: 90
+    container_name: freshrss
+    container_docker_compose_folder: "{{ freshrss_compose_basedir }}"
+    container_firewall_ports:
+      - "{{ freshrss_https_port }}/tcp"
+
+  import_role:
+    name: podman_container
