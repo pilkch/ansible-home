@@ -26,23 +26,35 @@
 - name: Install flatpak software
   community.general.flatpak:
     name:
-      - runtime/org.freedesktop.Platform.ffmpeg-full/x86_64/23.08 # NOTE: There are multiple versions and we have to pick a specific version
+      - runtime/org.freedesktop.Platform.ffmpeg-full/x86_64/23.08 # NOTE: There are multiple versions and we have to pick a specific version https://kaythomas.dev/posts/flatpak-firefox-hardware-acceleration.html
+      #- com.vscodium.codium
       - org.gimp.GIMP
       - org.gnome.gedit
       - org.mozilla.firefox
       - org.darktable.Darktable
+      - org.gnome.Boxes
       - org.gnome.Rhythmbox3
       - org.mozilla.Thunderbird
       - org.videolan.VLC
+      - tv.kodi.Kodi
     state: present
     method: user
 
-# TODO: When Selfless Heros provides a flatpak add it here
-- name: Install flatpak games
-  community.general.flatpak:
-    name:
-      - com.valvesoftware.Steam
-      - com.endlessnetwork.passage
-      - com.endlessnetwork.aqueducts
-    state: present
-    method: user
+- block:
+  # TODO: When Selfless Heros provides a flatpak add it here https://github.com/felicien-brochu/selflessheroes/issues/19
+  - name: Install flatpak games
+    community.general.flatpak:
+      name:
+        #- com.valvesoftware.Steam
+        - com.endlessnetwork.passage
+        - com.endlessnetwork.aqueducts
+      state: present
+      method: user
+
+  - name: Install Steam
+    package:
+      name: steam
+      state: latest
+    become: true
+
+  when: 'gaming' in group_names
