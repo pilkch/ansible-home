@@ -1,14 +1,15 @@
 ---
 # Hack to gather facts for unrelated fileserver.network.home
-- name: Add fileserver.network.home to in memory inventory
-  add_host:
-    name: fileserver.network.home
+- block:
+  - name: Add fileserver.network.home to in memory inventory
+    add_host:
+      name: fileserver.network.home
 
-- name: Gather facts from fileserver.network.home
-  setup:
-  delegate_to: fileserver.network.home
-  delegate_facts: true
-  run_once: true
+  - name: Gather facts from fileserver.network.home
+    setup:
+    delegate_to: fileserver.network.home
+    delegate_facts: true
+    run_once: true
 
 # Client side of the fileserver.network.home samba share
 - block:

@@ -1,0 +1,36 @@
+---
+# Flatpak
+#- block:
+  # Remove the RPM version of firefox (We only want to use the flatpak version after it is installed)
+  #- name: Remove firefox
+  #  package:
+  #    name:
+  #      - firefox
+  #    state: absent
+  #  become: true
+
+  # NOTE: libva-utils is for the ffmpeg flatpak
+  #- name: Install libva-utils for ffmpeg flatpak
+  #  package:
+  #    name:
+  #      - libva-utils
+  #    state: latest
+  #  become: true
+
+  # NOTE: ffmpeg is for firefox
+  #- name: Install flatpak software
+  #  community.general.flatpak:
+  #    name:
+  #      #- runtime/org.freedesktop.Platform.ffmpeg-full/x86_64/23.08 # NOTE: There are multiple versions and we have to pick a specific version https://kaythomas.dev/posts/flatpak-firefox-hardware-acceleration.html
+  #      #- org.mozilla.firefox
+  #    state: present
+  #    method: user
+
+
+# RPM
+# NOTE: I wanted to keep the installation simple because it was my first time importing my firefox profile across from Windows, so I went with the RPM version instead of flatpak. It looks like the firefox data and profiles are under $HOME/.var/app/org.mozilla.firefox/, so maybe next time.
+- name: Install firefox
+  package:
+    name: firefox
+    state: latest
+  become: true
