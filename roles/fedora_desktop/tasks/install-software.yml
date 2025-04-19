@@ -1,19 +1,16 @@
 ---
-# NOTE: libva-utils is for ffmpeg
-- name: Install libva-utils for ffmpeg
+# Remove "hp-uiscan" and "HPLIP Graphic Tools" which were added to Fedora Workstation and Silverblue for some reason, I guess to help with printing?
+# https://github.com/fedora-silverblue/issue-tracker/issues/646 (For ostree, but workstation has the same issue)
+- name: Remove hp-uiscan and HPLIP Graphic Tools
   package:
     name:
-      - libva-utils
-    state: latest
-  become: true
-
-# Remove the RPM version of firefox (We only want to use the flatpak version after it is installed)
-- name: Remove firefox
-  package:
-    name:
-      - firefox
+      - "{{ item }}"
     state: absent
   become: true
+  with_items:
+    - hplip
+    - hplip-gui
+
 
 - name: Add the flathub flatpak repository remote to the user installation
   community.general.flatpak_remote:
@@ -22,15 +19,12 @@
     flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
     method: user
 
-# NOTE: ffmpeg is for firefox
 - name: Install flatpak software
   community.general.flatpak:
     name:
-      - runtime/org.freedesktop.Platform.ffmpeg-full/x86_64/23.08 # NOTE: There are multiple versions and we have to pick a specific version https://kaythomas.dev/posts/flatpak-firefox-hardware-acceleration.html
       #- com.vscodium.codium
       - org.gimp.GIMP
       - org.gnome.gedit
-      - org.mozilla.firefox
       - org.darktable.Darktable
       - org.gnome.Boxes
       - org.gnome.Rhythmbox3
@@ -40,7 +34,13 @@
     state: present
     method: user
 
+
+- include_tasks: install-firefox.yml
+
+
+# Games
 - block:
+  # NOTE: The Steam flatpak requires quite some extra packages and configuration, so I went with the dnf version instead. Maybe next time.
   # TODO: When Selfless Heros provides a flatpak add it here https://github.com/felicien-brochu/selflessheroes/issues/19
   - name: Install flatpak games
     community.general.flatpak:
@@ -57,4 +57,4 @@
       state: latest
     become: true
 
-  when: 'gaming' in group_names
+  when: "'gaming' in group_names"
