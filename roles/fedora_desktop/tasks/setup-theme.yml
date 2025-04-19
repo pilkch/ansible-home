@@ -1,0 +1,14 @@
+---
+# Apply dark mode in gnome
+# TODO: I think there is a way to do this with community.general.gconftool2 too? That would be nicer
+- name: Set gnome dark mode
+  ansible.builtin.shell:
+    cmd: gsettings set org.gnome.desktop.interface color-scheme prefer-dark
+  become: true
+
+# Turn on minimise and maximise buttons again (Why would you remove them and make a desktop less useful?)
+# NOTE: This can also be done with gnome-tweaks or Refine
+- name: Turn on minimise and maximise buttons
+  ansible.builtin.shell:
+    cmd: gsettings set org.gnome.desktop.wm.preferences button-layout ":minimize,maximize,close"
+  become: true
