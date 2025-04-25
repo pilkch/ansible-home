@@ -29,6 +29,7 @@
       - org.gnome.Boxes
       - org.gnome.Rhythmbox3
       - org.mozilla.Thunderbird
+      - org.signal.Signal
       - org.videolan.VLC
       - tv.kodi.Kodi
     state: present
