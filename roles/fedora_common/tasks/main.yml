@@ -1,6 +1,7 @@
 ---
 - include_tasks: configure-yum-repos.yml
 - include_tasks: install-yum-updates.yml
+- include_tasks: install-dnf-automatic.yml
 
 # Disable sleep for servers and workstations
 - include_tasks: disable-sleep.yml
