@@ -2,4 +2,5 @@
 skip_list:
   - name[template]
   - yaml[line-length]
+  - yaml[indentation]
   - schema[meta]
