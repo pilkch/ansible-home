@@ -11,7 +11,7 @@ check-yaml:
   tags:
     - linux
   script:
-    - yamllint .
+    - yamllint -c .yamllint .
 
 check-ansible:
   stage: tests-and-checks
