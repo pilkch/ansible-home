@@ -1,9 +1,10 @@
 stages:
   - tests-and-checks
+  - deploy
 
 default:
   before_script:
-    - dnf install -y yamllint python3-ansible-lint
+    - dnf install -y ansible yamllint python3-ansible-lint
 
 check-yaml:
   stage: tests-and-checks
@@ -18,3 +19,30 @@ check-ansible:
     - linux
   script:
     - ANSIBLE_CONFIG=ansible.cfg ansible-lint
+
+# Gitlab's monthly scheduled pipeline (See https://gitlab.network.home:2443/dev/public/ansible-home/-/pipeline_schedules)
+update-certificates-deploy:
+  stage: deploy
+  tags:
+    - linux
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"' # Only run this stage when we are run from the gitlab scheduled pipeline
+  before_script:
+    - dnf install python3 augeas-libs
+    - pip install certbot certbot-dns-cloudflare cloudflare
+  script:
+    # Create or checkout the branch
+    - git checkout -b update-home-assistant-certificates || (git checkout update-home-assistant-certificates && git pull)
+    - git branch
+    # Create the lets_encrypt .ini file
+    - echo "dns_cloudflare_api_token = $DNS_CLOUDFLARE_API_TOKEN" > ./scripts/lets_encrypt/certbot-iluo.xyz.ini
+    # Generate the certifcates with Let's Encrypt and add it to the ansible vault file
+    - ./scripts/generate_lets_encrypt_certificates.sh homeassistant.iluo.xyz home_assistant_ca_bundle_certificate home_assistant_private_key
+    # Commit and push these changes to git
+    - git commit -m "Updated Home Assistant certificates"
+    - git push
+    # Call ansible to copy across the certificates and restart Home Assistant
+    - ansible-playbook -i inventories/network_home.ini -l homeassistant.iluo.xyz --vault-password-file $VAULT_PASSWORD_TXT ./playbooks/podman/homeassistant.yml # VAULT_PASSWORD_TXT is from the gitlab scheduled pipeline settings
+  after_script:
+    # Clean up
+    - rm ./scripts/lets_encrypt/certbot-iluo.xyz.ini
