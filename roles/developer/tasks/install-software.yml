@@ -1,6 +1,6 @@
 ---
 - name: Install developer general tools
-  package:
+  ansible.builtin.package:
     name:
       - curl
       - flatpak
@@ -13,7 +13,7 @@
   become: true
 
 - name: Install developer toolchains
-  package:
+  ansible.builtin.package:
     name:
       - gcc
       - gcc-c++
@@ -25,7 +25,7 @@
   become: true
 
 - name: Install developer libraries
-  package:
+  ansible.builtin.package:
     name:
       - gtest-devel
       - gnutls-devel

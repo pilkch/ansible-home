@@ -2,11 +2,11 @@
 # Hack to gather facts for unrelated fileserver.network.home
 - block:
   - name: Add fileserver.network.home to in memory inventory
-    add_host:
+    ansible.builtin.add_host:
       name: fileserver.network.home
 
   - name: Gather facts from fileserver.network.home
-    setup:
+    ansible.builtin.setup:
     delegate_to: fileserver.network.home
     delegate_facts: true
     run_once: true
@@ -14,7 +14,7 @@
 # Client side of the fileserver.network.home samba share
 - block:
   - name: Create the mount folder
-    file:
+    ansible.builtin.file:
       path: /data
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"

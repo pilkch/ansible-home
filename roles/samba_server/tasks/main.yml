@@ -1,6 +1,6 @@
 ---
 - name: Install samba packages
-  package:
+  ansible.builtin.package:
     name:
       - samba
       - policycoreutils-python-utils
@@ -8,7 +8,7 @@
   become: true
 
 - name: Ensure Samba is running and set to start at boot
-  service:
+  ansible.builtin.service:
     name: smb
     state: started
     enabled: true
@@ -16,7 +16,7 @@
 
 # Set up the samba user
 - block:
-  - name: shell - create samba users
+  - name: Create samba users
     ansible.builtin.shell: >
       set -e -o pipefail
       && (pdbedit --user={{ samba_user }} 2>&1 > /dev/null)
@@ -29,7 +29,7 @@
     no_log: true
     become: true
 
-  - name: shell - set samba passwords correctly
+  - name: Set samba passwords
     ansible.builtin.shell: >
       set -e -o pipefail
       && (smbclient -U {{ samba_user }}%{{ samba_password }} -L 127.0.0.1 2>&1 > /dev/null)
@@ -43,7 +43,9 @@
     become: true
 
   - name: Enable samba user
-    shell: "smbpasswd -e {{ samba_user }}"
+    ansible.builtin.command: "smbpasswd -e {{ samba_user }}"
+    register: samba_enable_user
+    changed_when: "'Enabled user {{ samba_user }}' in samba_enable_user.stdout"
     become: true
 
 # Set up the permissions on the samba folder
@@ -51,11 +53,12 @@
 # https://docs.fedoraproject.org/en-US/quick-docs/samba/
 - block:
   - name: Change folder owner
-    file:
+    ansible.builtin.file:
       state: directory
       path: "{{ samba_folder }}"
       owner: "{{ samba_user }}"
       group: "{{ samba_user }}"
+      mode: '0770'
 
   # semanage fcontext --add --type "samba_share_t" "/data1(/.*)?"
   - name: Allow sharing the folder
@@ -64,16 +67,16 @@
       setype: samba_share_t
       state: present
 
-  # restorecon -R ~/share
+  # restorecon -R /data1
   - name: Apply new SELinux file context to filesystem
-    ansible.builtin.command: "restorecon -R {{ samba_folder }}"
+    ansible.builtin.command: "restorecon -R \"{{ samba_folder }}\""
 
   become: true
 
 # NOTE: The share also seems to need at least one file within it or trying to read it from the client will fail with a lack of permissions
 
 - name: Update samba configuration
-  template:
+  ansible.builtin.template:
     src: smb.conf.j2
     dest: /etc/samba/smb.conf
     owner: root

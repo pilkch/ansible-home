@@ -3,7 +3,7 @@
 #- block:
   # Remove the RPM version of firefox (We only want to use the flatpak version after it is installed)
   #- name: Remove firefox
-  #  package:
+  #  ansible.builtin.package:
   #    name:
   #      - firefox
   #    state: absent
@@ -11,7 +11,7 @@
 
   # NOTE: libva-utils is for the ffmpeg flatpak
   #- name: Install libva-utils for ffmpeg flatpak
-  #  package:
+  #  ansible.builtin.package:
   #    name:
   #      - libva-utils
   #    state: latest
@@ -30,7 +30,7 @@
 # RPM
 # NOTE: I wanted to keep the installation simple because it was my first time importing my firefox profile across from Windows, so I went with the RPM version instead of flatpak. It looks like the firefox data and profiles are under $HOME/.var/app/org.mozilla.firefox/, so maybe next time.
 - name: Install firefox
-  package:
+  ansible.builtin.package:
     name: firefox
     state: latest
   become: true

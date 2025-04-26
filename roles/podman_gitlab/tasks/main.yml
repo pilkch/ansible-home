@@ -1,31 +1,32 @@
 ---
-- set_fact:
+- ansible.builtin.set_fact:
     gitlab_volumes_basedir: "/home/{{ gitlab_container_user }}/srv/gitlab"
 
 # User and group
 - block:
   - name: "Create gitlab group"
-    group:
+    ansible.builtin.group:
       name: "{{ gitlab_container_group }}"
 
   - name: "Create gitlab user"
-    user:
+    ansible.builtin.user:
       name: "{{ gitlab_container_user }}"
       password: "{{ gitlab_container_user_password | password_hash('sha512') }}"
       update_password: always
       groups: "{{ gitlab_container_group }}"
-      append: yes
+      append: true
 
   become: true
 
 
 # Create folders
 - name: Create the config, logs, and data folders for Gitlab
-  file:
+  ansible.builtin.file:
     path: "{{ gitlab_volumes_basedir }}/{{ item }}"
     owner: "{{ gitlab_container_user }}"
     group: "{{ gitlab_container_group }}"
     state: directory
+    mode: '0770'
   with_items:
     - config
     - logs
@@ -37,19 +38,20 @@
 # SSL Certificates
 - block:
   - name: Create the ssl folder for Gitlab
-    file:
+    ansible.builtin.file:
       path: "{{ gitlab_volumes_basedir }}/config/ssl"
       owner: "{{ gitlab_container_user }}"
       group: "{{ gitlab_container_group }}"
       state: directory
+      mode: '0700'
 
   - name: Check if public certificate exists
-    stat:
+    ansible.builtin.stat:
       path: "{{ gitlab_volumes_basedir }}/config/ssl/{{ gitlab_fqdn }}.crt"
     register: public_certificate
 
   - name: Check if private key exists
-    stat:
+    ansible.builtin.stat:
       path: "{{ gitlab_volumes_basedir }}/config/ssl/{{ gitlab_fqdn }}.key"
     register: private_key
 
@@ -152,5 +154,5 @@
       - "{{ gitlab_registry_port }}/tcp"
       - "{{ gitlab_ssh_port }}/tcp"
 
-  import_role:
+  ansible.builtin.import_role:
     name: podman_container

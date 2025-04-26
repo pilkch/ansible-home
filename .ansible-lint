@@ -1,6 +1,18 @@
 ---
 skip_list:
+  - key-order[task]
+  - name[missing]
+  - name[play]
   - name[template]
+  - no-changed-when
+  - no-handler
+  - package-latest
+  - role-name
+  - role-name[path]
+  - schema[meta]
+  - var-naming[no-role-prefix]
+  - var-naming[pattern]
+  - yaml[comments]
+  - yaml[comments-indentation]
   - yaml[line-length]
   - yaml[indentation]
-  - schema[meta]

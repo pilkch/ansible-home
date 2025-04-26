@@ -13,7 +13,7 @@
         - https://packages.gitlab.com/runner/gitlab-runner/gpgkey
         - https://packages.gitlab.com/runner/gitlab-runner/gpgkey/runner-gitlab-runner-4C80FB51394521E9.pub.gpg
         - https://packages.gitlab.com/runner/gitlab-runner/gpgkey/runner-gitlab-runner-49F16C5CC3A0F81F.pub.gpg
-      enabled: yes
+      enabled: true
       sslverify: true
       sslcacert: /etc/pki/tls/certs/ca-bundle.crt
       metadata_expire: 300
@@ -32,23 +32,23 @@
 # User and group
 - block:
   - name: Create gitlab-runner group
-    group:
+    ansible.builtin.group:
       name: "{{ gitlab_runner_group }}"
 
   - name: Create gitlab-runner user
-    user:
+    ansible.builtin.user:
       name: "{{ gitlab_runner_user }}"
       password: "{{ gitlab_runner_user_password | password_hash('sha512') }}"
       update_password: always
       groups: "{{ gitlab_runner_group }}"
-      append: yes
+      append: true
 
   become: true
 
 # Copy gitlab runner configuration
 - block:
   - name: Create the gitlab-runner .gitlab-runner directory
-    file:
+    ansible.builtin.file:
       path: "/home/{{ gitlab_runner_user }}/.gitlab-runner"
       owner: "{{ gitlab_runner_user }}"
       group: "{{ gitlab_runner_group }}"
@@ -56,7 +56,7 @@
       state: directory
 
   - name: Create the gitlab-runner config directory
-    file:
+    ansible.builtin.file:
       path: "/home/{{ gitlab_runner_user }}/.gitlab-runner/certs"
       owner: "{{ gitlab_runner_user }}"
       group: "{{ gitlab_runner_group }}"

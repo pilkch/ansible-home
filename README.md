@@ -84,7 +84,7 @@ For some of the more sensitive services I use Let's Encrypt with certbot and a c
 
 On the machine that you edit your ansible on:
 ```bash
-sudo dnf install python3 python3-virtualenv augeas-libs
+sudo dnf install python3 pip3 python3-virtualenv augeas-libs
 virtualenv --python=python3 myenv
 pip install certbot certbot-dns-cloudflare cloudflare
 ```
@@ -103,6 +103,10 @@ Generate the certificates:
 ```
 
 ## Usage Examples
+
+```bash
+sudo dnf install ansible ansible-collection-containers-podman
+```
 
 ```bash
 ansible-playbook -i inventories/network_home.ini -l chris_linux_computer -K --ask-vault-pass playbooks/setup-desktop.yml

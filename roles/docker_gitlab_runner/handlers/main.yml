@@ -1,29 +1,45 @@
 ---
 - name: Restart docker
-  service:
+  ansible.builtin.service:
     name: docker
     state: restarted
   become: true
 
 - name: Restart gitlab-runner container block
   block:
+    # docker stop gitlab-runner
     - name: Stop gitlab-runner container
-      shell: docker stop gitlab-runner
-      ignore_errors: true
+      community.docker.docker_container:
+        name: gitlab-runner
+        state: stopped
       listen: "Restart gitlab-runner container"
 
+    # docker rm gitlab-runner
     - name: Remove gitlab-runner container
-      shell: docker rm gitlab-runner
-      ignore_errors: true
+      community.docker.docker_container:
+        name: gitlab-runner
+        state: absent
       listen: "Restart gitlab-runner container"
 
+    # docker run -d --name gitlab-runner --restart always \
+    #   -v /srv/gitlab-runner/config:/etc/gitlab-runner:Z \
+    #   -v /srv/gitlab-runner/certs/{{ gitlab_fqdn }}.crt:/etc/gitlab-runner/certs/{{ gitlab_fqdn }}.crt:Z \
+    #   -v /var/run/docker.sock:/var/run/docker.sock:Z \
+    #   -e \"CA_CERTIFICATES_PATH=/etc/gitlab-runner/certs/{{ gitlab_fqdn }}.crt\" \
+    #   gitlab/gitlab-runner:v{{ gitlab_runner_version }}"
     - name: Start gitlab-runner container
-      shell: "docker run -d --name gitlab-runner --restart always \
-        -v /srv/gitlab-runner/config:/etc/gitlab-runner:Z \
-        -v /srv/gitlab-runner/certs/{{ gitlab_fqdn }}.crt:/etc/gitlab-runner/certs/{{ gitlab_fqdn }}.crt:Z \
-        -v /var/run/docker.sock:/var/run/docker.sock:Z \
-        -e \"CA_CERTIFICATES_PATH=/etc/gitlab-runner/certs/{{ gitlab_fqdn }}.crt\" \
-        gitlab/gitlab-runner:v{{ gitlab_runner_version }}"
+      community.docker.docker_container:
+        name: gitlab-runner
+        image: "gitlab/gitlab-runner:v{{ gitlab_runner_version }}"
+        state: started
+        restart: true
+        restart_policy: always
+        volumes:
+          - /srv/gitlab-runner/config:/etc/gitlab-runner:Z
+          - "/srv/gitlab-runner/certs/{{ gitlab_fqdn }}.crt:/etc/gitlab-runner/certs/{{ gitlab_fqdn }}.crt:Z"
+          - "/var/run/docker.sock:/var/run/docker.sock:Z"
+        env:
+          CA_CERTIFICATES_PATH: "/etc/gitlab-runner/certs/{{ gitlab_fqdn }}.crt"
       listen: "Restart gitlab-runner container"
 
   become: true
