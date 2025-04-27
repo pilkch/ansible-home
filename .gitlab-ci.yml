@@ -32,10 +32,13 @@ update-certificates-deploy:
     - dnf install -y python3 python3-pip augeas-libs certbot
     - pip3 install certbot-dns-cloudflare cloudflare
   script:
+    # TEMP
+    - git checkout "$CI_COMMIT_REF_NAME"
     # Tell git to trust our gitlab server certificate
     - git config --global http.sslCAInfo "$GITLAB_PUBLIC_CERT"
-    # Create or checkout the branch
-    - git fetch update-home-assistant-certificates || git checkout update-home-assistant-certificates || git checkout -b update-home-assistant-certificates
+    # Recreate the branch
+    - git branch -D update-home-assistant-certificates || true
+    - git checkout -b update-home-assistant-certificates
     - git branch
     # Create the lets_encrypt .ini file
     - echo "dns_cloudflare_api_token = $DNS_CLOUDFLARE_API_TOKEN" > ./scripts/lets_encrypt/certbot-iluo.xyz.ini
@@ -49,3 +52,4 @@ update-certificates-deploy:
   after_script:
     # Clean up
     - rm -f ./scripts/lets_encrypt/certbot-iluo.xyz.ini
+    - git checkout "$CI_COMMIT_REF_NAME"
