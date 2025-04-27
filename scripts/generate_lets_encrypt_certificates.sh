@@ -95,7 +95,8 @@ VAULT_FILE_DECRYPTED="$TEMP_FOLDER/vault.decrypted.yml"
 VAULT_PASSWORD_FILE="$TEMP_FOLDER/vault_password_file.txt"
 
 # Check that certbot is installed
-if [ ! command -v certbot 2>&1 >/dev/null ]; then
+if ! command -v certbot 2>&1 >/dev/null
+then
   echo "certbot is not installed"
   exit 1
 fi
