@@ -21,7 +21,7 @@ function generate_certbot_certificates {
     EXISTING_KEY_MD5=$(md5sum "$PRIVATE_KEY_FILE_PATH" | cut -d' ' -f1)
   fi
 
-  ~/.local/bin/certbot certonly --dns-cloudflare --dns-cloudflare-credentials ./scripts/lets_encrypt/certbot-$DOMAIN.ini --config-dir ./letsencrypt/config --work-dir ./letsencrypt/working --logs-dir ./letsencrypt/logs -d $HOST_FQDN
+  certbot certonly --dns-cloudflare --dns-cloudflare-credentials ./scripts/lets_encrypt/certbot-$DOMAIN.ini --config-dir ./letsencrypt/config --work-dir ./letsencrypt/working --logs-dir ./letsencrypt/logs -d $HOST_FQDN
 
   NEW_CERT_MD5=$(md5sum "$CERT_FILE_PATH" | cut -d' ' -f1)
   NEW_KEY_MD5=$(md5sum "$PRIVATE_KEY_FILE_PATH" | cut -d' ' -f1)
@@ -95,7 +95,7 @@ VAULT_FILE_DECRYPTED="$TEMP_FOLDER/vault.decrypted.yml"
 VAULT_PASSWORD_FILE="$TEMP_FOLDER/vault_password_file.txt"
 
 # Check that certbot is installed
-if [ ! -e ~/.local/bin/certbot ]; then
+if [ ! command -v certbot 2>&1 >/dev/null ]; then
   echo "certbot is not installed"
   exit 1
 fi
