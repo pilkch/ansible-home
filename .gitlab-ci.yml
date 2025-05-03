@@ -36,7 +36,7 @@ update-certificates-deploy:
     # Tell git to trust our gitlab server certificate
     - git config --global http.sslCAInfo "$GITLAB_PUBLIC_CERT"
     # Clone the ansible-secrets repo and create or use a branch
-    - git clone https://gitlab.network.home:2443/dev/ansible-secrets.git
+    - git -c http.sslVerify=false clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.network.home:2443/dev/ansible-secrets.git
     - cd ansible-secrets && (git checkout update-home-assistant-certificates || git checkout -b update-home-assistant-certificates)
     - cd ansible-secrets && git branch
     # Copy the ansible vault file across
