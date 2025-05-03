@@ -13,8 +13,8 @@ function print_usage {
 }
 
 function generate_certbot_certificates {
-  CERT_FILE_PATH="letsencrypt/config/live/$DOMAIN/fullchain.pem"
-  PRIVATE_KEY_FILE_PATH="letsencrypt/config/live/$DOMAIN/privkey.pem"
+  CERT_FILE_PATH="letsencrypt/config/live/$HOST_FQDN/fullchain.pem"
+  PRIVATE_KEY_FILE_PATH="letsencrypt/config/live/$HOST_FQDN/privkey.pem"
   if [ -f "" ]; then
     EXISTING_CERT_MD5=$(md5sum "$CERT_FILE_PATH" | cut -d' ' -f1)
     EXISTING_KEY_MD5=$(md5sum "$PRIVATE_KEY_FILE_PATH" | cut -d' ' -f1)
