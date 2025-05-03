@@ -38,7 +38,8 @@ update-certificates-deploy:
     - git config --global user.name "gitlab-ci"
     - git config --global http.sslCAInfo "$GITLAB_PUBLIC_CERT"
     # Clone the ansible-secrets repo and create or use a branch
-    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.network.home:2443/dev/ansible-secrets.git
+    # NOTE: We would use CI_JOB_TOKEN but it from ansible-home it doesn't have push access to ansible-secrets, so we use an access token, ANSIBLE_SECRETS_PUSH_ACCESS_TOKEN
+    - git clone https://gitlab-ci-token:${ANSIBLE_SECRETS_PUSH_ACCESS_TOKEN}@gitlab.network.home:2443/dev/ansible-secrets.git
     - cd ansible-secrets
     - git checkout update-home-assistant-certificates || git checkout -b update-home-assistant-certificates
     - git branch
