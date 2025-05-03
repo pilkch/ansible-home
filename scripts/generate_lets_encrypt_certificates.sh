@@ -20,7 +20,7 @@ function generate_certbot_certificates {
     EXISTING_KEY_MD5=$(md5sum "$PRIVATE_KEY_FILE_PATH" | cut -d' ' -f1)
   fi
 
-  certbot certonly --dns-cloudflare --dns-cloudflare-credentials ./scripts/lets_encrypt/certbot-$DOMAIN.ini --config-dir ./letsencrypt/config --work-dir ./letsencrypt/working --logs-dir ./letsencrypt/logs -d $HOST_FQDN
+  certbot certonly --non-interactive --dns-cloudflare --dns-cloudflare-credentials ./scripts/lets_encrypt/certbot-$DOMAIN.ini --config-dir ./letsencrypt/config --work-dir ./letsencrypt/working --logs-dir ./letsencrypt/logs -d $HOST_FQDN
 
   NEW_CERT_MD5=$(md5sum "$CERT_FILE_PATH" | cut -d' ' -f1)
   NEW_KEY_MD5=$(md5sum "$PRIVATE_KEY_FILE_PATH" | cut -d' ' -f1)
@@ -51,7 +51,7 @@ function decrypt_generate_encrypt {
       echo "Error generating certbot certificates"
     else
       NEW_VAULT_MD5=$(md5sum "$VAULT_FILE_DECRYPTED" | cut -d' ' -f1)
-      if [ "$NEW_VAULT_MD5" == "$PREVIOUS_VAULT_MD5"]; then
+      if [ "$NEW_VAULT_MD5" == "$PREVIOUS_VAULT_MD5" ]; then
         # No changes, treat this as success
         RESULT=0
       else
