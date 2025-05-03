@@ -20,7 +20,7 @@ function generate_certbot_certificates {
     EXISTING_KEY_MD5=$(md5sum "$PRIVATE_KEY_FILE_PATH" | cut -d' ' -f1)
   fi
 
-  certbot certonly --non-interactive --dns-cloudflare --dns-cloudflare-credentials ./scripts/lets_encrypt/certbot-$DOMAIN.ini --config-dir ./letsencrypt/config --work-dir ./letsencrypt/working --logs-dir ./letsencrypt/logs -d $HOST_FQDN
+  certbot certonly --non-interactive --agree-tos --dns-cloudflare --dns-cloudflare-credentials ./scripts/lets_encrypt/certbot-$DOMAIN.ini --config-dir ./letsencrypt/config --work-dir ./letsencrypt/working --logs-dir ./letsencrypt/logs -d $HOST_FQDN
 
   NEW_CERT_MD5=$(md5sum "$CERT_FILE_PATH" | cut -d' ' -f1)
   NEW_KEY_MD5=$(md5sum "$PRIVATE_KEY_FILE_PATH" | cut -d' ' -f1)
