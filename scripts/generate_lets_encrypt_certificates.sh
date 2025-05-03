@@ -3,12 +3,11 @@
 source ./scripts/yaml_helpers.sh
 
 function print_usage {
-  echo "Usage: ./scripts/generate_lets_encrypt_certificate.sh HOST_FQDN VARIABLE_NAME_CERTIFICATE VARIABLE_NAME_PRIVATE_KEY"
+  echo "Usage: ./scripts/generate_lets_encrypt_certificate.sh VAULT_PASSWORD_FILE HOST_FQDN VARIABLE_NAME_CERTIFICATE VARIABLE_NAME_PRIVATE_KEY"
   echo "Generates Let's Encrypt certificates for a single services and add it to the encrypted ansible ./inventories/group_vars/all/vault.yml file"
   echo ""
   echo "Example:"
-  echo "./scripts/generate_lets_encrypt_certificate.sh homeassistant.mydomain.com home_assistant_ca_bundle_certificate home_assistant_private_key"
-  echo "You will be asked to enter your vault password"
+  echo "./scripts/generate_lets_encrypt_certificate.sh ./vault-password.txt homeassistant.mydomain.com home_assistant_ca_bundle_certificate home_assistant_private_key"
   echo ""
   echo "Note: This will request certificates via certbot and add them to the vault, overwriting them if they already exist."
 }
@@ -70,11 +69,12 @@ function decrypt_generate_encrypt {
   return $RESULT
 }
 
-HOST_FQDN="$1"
-VARIABLE_NAME_CERTIFICATE="$2"
-VARIABLE_NAME_PRIVATE_KEY="$3"
+VAULT_PASSWORD_FILE="$1"
+HOST_FQDN="$2"
+VARIABLE_NAME_CERTIFICATE="$3"
+VARIABLE_NAME_PRIVATE_KEY="$4"
 
-if [ "$HOST_FQDN" == "" ] || [ "$VARIABLE_NAME_CERTIFICATE" == "" ] || [ "$VARIABLE_NAME_PRIVATE_KEY" == "" ]; then
+if [ "$HOST_FQDN" == "" ] || [ "$VAULT_PASSWORD_FILE" == "" ] || [ "$VARIABLE_NAME_CERTIFICATE" == "" ] || [ "$VARIABLE_NAME_PRIVATE_KEY" == "" ]; then
   # Print the usage and exit
   print_usage
   exit 1
@@ -92,7 +92,6 @@ fi
 VAULT_FILE_ENCRYPTED=./inventories/group_vars/all/vault.yml
 TEMP_FOLDER=./.generate_certbot_certificates_temp
 VAULT_FILE_DECRYPTED="$TEMP_FOLDER/vault.decrypted.yml"
-VAULT_PASSWORD_FILE="$TEMP_FOLDER/vault_password_file.txt"
 
 # Check that certbot is installed
 if ! command -v certbot 2>&1 >/dev/null
@@ -124,17 +123,6 @@ fi
 rm -rf "$TEMP_FOLDER" || true
 mkdir -p "$TEMP_FOLDER" || true
 
-# Ask for the vault password
-echo -n Password: 
-read -s VAULT_PASSWORD
-echo
-
-# Create a password file (Eww)
-echo "$VAULT_PASSWORD" > "$VAULT_PASSWORD_FILE"
-
-# Clear the vault password from memory (Maybe there is a more thorough way of doing this?)
-VAULT_PASSWORD=""
-
 # Make a backup of the vault file (We don't want to trash the user's data)
 DATE=$(date '+%Y%m%d')
 cp "$VAULT_FILE_ENCRYPTED" "$VAULT_FILE_ENCRYPTED.backup$DATE"
@@ -143,7 +131,7 @@ cp "$VAULT_FILE_ENCRYPTED" "$VAULT_FILE_ENCRYPTED.backup$DATE"
 decrypt_generate_encrypt
 FINAL_RESULT=$?
 
-# Delete the decrypted vault file and vault password file
+# Delete the decrypted vault file
 rm -rf "$TEMP_FOLDER"
 
 exit $FINAL_RESULT
