@@ -11,10 +11,11 @@
 #
 # Upgrade Paths
 # https://docs.gitlab.com/ee/update/upgrade_paths.html
+# https://gitlab-com.gitlab.io/support/toolbox/upgrade-path/?distro=docker&edition=ce
 #
 # 15.0.5 > 15.4.6 > 15.11.13
 # 16.1 > 16.3.7 > 16.7.7 > 16.11.10
-# 17.1.8 > 17.3.7 > 17.5.z. The latest GitLab 17.5 release.
+# 17.1.8 > 17.3.7 > 17.5.5 > 17.8.7 > 17.11.1 > Latest 17.11.x
 #
 # What versions are available? This is a quick way to find out:
 # https://hub.docker.com/r/gitlab/gitlab-ce/tags?page=1
@@ -25,9 +26,9 @@
 # systemctl --user stop gitlab-container
 # (cd srv && zip -r gitlab20231101b.zip ./gitlab)
 # <edit the gitlab image version in ansible, making the version jumps above>
-# ansible-playbook -i inventories/network_home.ini -l chris_linux_computer -v -kK playbooks/setup-podman-and-services.yml && date && sleep 600
+# ansible-playbook -i inventories/network_home.ini -l chris_linux_computer -v -kK --ask-vault-password playbooks/podman/gitlab.yml && date && sleep 600
 # <the sleep is to force waiting before running the next upgrade so that gitlab can get up and running, upgrade anything it needs to and settle down before you run the next upgrade. While you are waiting browse around, make sure your data looks to be present, check the logs to make sure everything is working properly>
-gitlab_version: 17.3.7
+gitlab_version: 17.5.5
 
 # Gitlab runner
 # NOTE: These don't necessarily match the exact Gitlab server version, but we should at least match the major version https://hub.docker.com/r/gitlab/gitlab-runner/tags
