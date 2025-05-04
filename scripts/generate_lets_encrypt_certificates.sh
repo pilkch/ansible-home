@@ -3,25 +3,24 @@
 source ./scripts/yaml_helpers.sh
 
 function print_usage {
-  echo "Usage: ./scripts/generate_lets_encrypt_certificate.sh HOST_FQDN VARIABLE_NAME_CERTIFICATE VARIABLE_NAME_PRIVATE_KEY"
+  echo "Usage: ./scripts/generate_lets_encrypt_certificate.sh VAULT_PASSWORD_FILE HOST_FQDN VARIABLE_NAME_CERTIFICATE VARIABLE_NAME_PRIVATE_KEY"
   echo "Generates Let's Encrypt certificates for a single services and add it to the encrypted ansible ./inventories/group_vars/all/vault.yml file"
   echo ""
   echo "Example:"
-  echo "./scripts/generate_lets_encrypt_certificate.sh homeassistant.mydomain.com home_assistant_ca_bundle_certificate home_assistant_private_key"
-  echo "You will be asked to enter your vault password"
+  echo "./scripts/generate_lets_encrypt_certificate.sh ./vault-password.txt homeassistant.mydomain.com home_assistant_ca_bundle_certificate home_assistant_private_key"
   echo ""
   echo "Note: This will request certificates via certbot and add them to the vault, overwriting them if they already exist."
 }
 
 function generate_certbot_certificates {
-  CERT_FILE_PATH="letsencrypt/config/live/$DOMAIN/fullchain.pem"
-  PRIVATE_KEY_FILE_PATH="letsencrypt/config/live/$DOMAIN/privkey.pem"
+  CERT_FILE_PATH="letsencrypt/config/live/$HOST_FQDN/fullchain.pem"
+  PRIVATE_KEY_FILE_PATH="letsencrypt/config/live/$HOST_FQDN/privkey.pem"
   if [ -f "" ]; then
     EXISTING_CERT_MD5=$(md5sum "$CERT_FILE_PATH" | cut -d' ' -f1)
     EXISTING_KEY_MD5=$(md5sum "$PRIVATE_KEY_FILE_PATH" | cut -d' ' -f1)
   fi
 
-  ~/.local/bin/certbot certonly --dns-cloudflare --dns-cloudflare-credentials ./scripts/lets_encrypt/certbot-$DOMAIN.ini --config-dir ./letsencrypt/config --work-dir ./letsencrypt/working --logs-dir ./letsencrypt/logs -d $HOST_FQDN
+  certbot certonly --non-interactive --agree-tos --dns-cloudflare --dns-cloudflare-credentials ./scripts/lets_encrypt/certbot-$DOMAIN.ini --config-dir ./letsencrypt/config --work-dir ./letsencrypt/working --logs-dir ./letsencrypt/logs -d $HOST_FQDN
 
   NEW_CERT_MD5=$(md5sum "$CERT_FILE_PATH" | cut -d' ' -f1)
   NEW_KEY_MD5=$(md5sum "$PRIVATE_KEY_FILE_PATH" | cut -d' ' -f1)
@@ -52,7 +51,7 @@ function decrypt_generate_encrypt {
       echo "Error generating certbot certificates"
     else
       NEW_VAULT_MD5=$(md5sum "$VAULT_FILE_DECRYPTED" | cut -d' ' -f1)
-      if [ "$NEW_VAULT_MD5" == "$PREVIOUS_VAULT_MD5"]; then
+      if [ "$NEW_VAULT_MD5" == "$PREVIOUS_VAULT_MD5" ]; then
         # No changes, treat this as success
         RESULT=0
       else
@@ -70,11 +69,12 @@ function decrypt_generate_encrypt {
   return $RESULT
 }
 
-HOST_FQDN="$1"
-VARIABLE_NAME_CERTIFICATE="$2"
-VARIABLE_NAME_PRIVATE_KEY="$3"
+VAULT_PASSWORD_FILE="$1"
+HOST_FQDN="$2"
+VARIABLE_NAME_CERTIFICATE="$3"
+VARIABLE_NAME_PRIVATE_KEY="$4"
 
-if [ "$HOST_FQDN" == "" ] || [ "$VARIABLE_NAME_CERTIFICATE" == "" ] || [ "$VARIABLE_NAME_PRIVATE_KEY" == "" ]; then
+if [ "$HOST_FQDN" == "" ] || [ "$VAULT_PASSWORD_FILE" == "" ] || [ "$VARIABLE_NAME_CERTIFICATE" == "" ] || [ "$VARIABLE_NAME_PRIVATE_KEY" == "" ]; then
   # Print the usage and exit
   print_usage
   exit 1
@@ -92,10 +92,10 @@ fi
 VAULT_FILE_ENCRYPTED=./inventories/group_vars/all/vault.yml
 TEMP_FOLDER=./.generate_certbot_certificates_temp
 VAULT_FILE_DECRYPTED="$TEMP_FOLDER/vault.decrypted.yml"
-VAULT_PASSWORD_FILE="$TEMP_FOLDER/vault_password_file.txt"
 
 # Check that certbot is installed
-if [ ! -e ~/.local/bin/certbot ]; then
+if ! command -v certbot 2>&1 >/dev/null
+then
   echo "certbot is not installed"
   exit 1
 fi
@@ -123,17 +123,6 @@ fi
 rm -rf "$TEMP_FOLDER" || true
 mkdir -p "$TEMP_FOLDER" || true
 
-# Ask for the vault password
-echo -n Password: 
-read -s VAULT_PASSWORD
-echo
-
-# Create a password file (Eww)
-echo "$VAULT_PASSWORD" > "$VAULT_PASSWORD_FILE"
-
-# Clear the vault password from memory (Maybe there is a more thorough way of doing this?)
-VAULT_PASSWORD=""
-
 # Make a backup of the vault file (We don't want to trash the user's data)
 DATE=$(date '+%Y%m%d')
 cp "$VAULT_FILE_ENCRYPTED" "$VAULT_FILE_ENCRYPTED.backup$DATE"
@@ -142,7 +131,7 @@ cp "$VAULT_FILE_ENCRYPTED" "$VAULT_FILE_ENCRYPTED.backup$DATE"
 decrypt_generate_encrypt
 FINAL_RESULT=$?
 
-# Delete the decrypted vault file and vault password file
+# Delete the decrypted vault file
 rm -rf "$TEMP_FOLDER"
 
 exit $FINAL_RESULT
