@@ -99,6 +99,7 @@
       --hostname="{{ home_assistant_fqdn }}"
     container_firewall_ports:
       - "{{ home_assistant_port }}/tcp"
+    container_force_restart: "{{ home_assistant_restart | default(omit) }}"
 
   ansible.builtin.import_role:
     name: podman_container
