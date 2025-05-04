@@ -1,4 +1,4 @@
 ---
-- include_tasks: mount-samba-share.yml
-- include_tasks: install-software.yml
-- include_tasks: setup-theme.yml
+- ansible.builtin.include_tasks: mount-samba-share.yml
+- ansible.builtin.include_tasks: install-software.yml
+- ansible.builtin.include_tasks: setup-theme.yml

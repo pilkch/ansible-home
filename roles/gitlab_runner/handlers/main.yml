@@ -4,28 +4,30 @@
 - name: Restart gitlab-runner shell block
   block:
     - name: Stop gitlab-runner shell
-      shell:
+      ansible.builtin.command:
         cmd: "gitlab-runner stop"
         chdir: "/home/{{ gitlab_runner_user }}/"
-      ignore_errors: true
+      register: gitlab_runner_stop
+      failed_when:
+        - gitlab_runner_stop.rc != 0
       listen: "Restart gitlab-runner shell"
 
     # Register the gitlab runner with the gitlab server
     - name: Register the gitlab-runner shell
-      ansible.builtin.shell:
-        cmd: gitlab-runner register --non-interactive --url "{{ gitlab_url }}/" --token "{{ gitlab_runner_executor_token }}" --executor "{{ gitlab_runner_executor_name }}" --description "{{ gitlab_runner_executor_name }}" --tls-ca-file "/home/{{ gitlab_runner_user }}/.gitlab-runner/certs/{{ gitlab_fqdn }}.crt" --config "/home/{{ gitlab_runner_user }}/.gitlab-runner/config.toml"
+      ansible.builtin.command:
+        cmd: "gitlab-runner register --non-interactive --url \"{{ gitlab_url }}/\" --token \"{{ gitlab_runner_executor_token }}\" --executor \"{{ gitlab_runner_executor_name }}\" --description \"{{ gitlab_runner_executor_name }}\" --tls-ca-file \"/home/{{ gitlab_runner_user }}/.gitlab-runner/certs/{{ gitlab_fqdn }}.crt\" --config \"/home/{{ gitlab_runner_user }}/.gitlab-runner/config.toml\""
         chdir: "/home/{{ gitlab_runner_user }}/"
       listen: "Restart gitlab-runner shell"
 
     - name: Install gitlab-runner shell
-      shell:
-        cmd: gitlab-runner install --user --config "/home/{{ gitlab_runner_user }}/.gitlab-runner/config.toml"
+      ansible.builtin.command:
+        cmd: "gitlab-runner install --user --config \"/home/{{ gitlab_runner_user }}/.gitlab-runner/config.toml\""
         chdir: "/home/{{ gitlab_runner_user }}/"
       listen: "Restart gitlab-runner shell"
 
     - name: Start gitlab-runner shell
-      shell:
-        cmd: gitlab-runner run --user --config "/home/{{ gitlab_runner_user }}/.gitlab-runner/config.toml"
+      ansible.builtin.command:
+        cmd: "gitlab-runner run --user --config \"/home/{{ gitlab_runner_user }}/.gitlab-runner/config.toml\""
         chdir: "/home/{{ gitlab_runner_user }}/"
       listen: "Restart gitlab-runner shell"
 

@@ -11,13 +11,13 @@
       state: latest
 
   - name: Check if we need to reboot
-    command: needs-restarting -r
+    ansible.builtin.command: needs-restarting -r
     register: needs_reboot
     failed_when: needs_reboot.rc not in [0,1]
-    changed_when: False
+    changed_when: false
 
   - name: Reboot
-    reboot:
+    ansible.builtin.reboot:
       reboot_timeout: 300
     when:
       - needs_reboot.rc == 1

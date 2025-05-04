@@ -2,7 +2,7 @@
 # Remove "hp-uiscan" and "HPLIP Graphic Tools" which were added to Fedora Workstation and Silverblue for some reason, I guess to help with printing?
 # https://github.com/fedora-silverblue/issue-tracker/issues/646 (For ostree, but workstation has the same issue)
 - name: Remove hp-uiscan and HPLIP Graphic Tools
-  package:
+  ansible.builtin.package:
     name:
       - "{{ item }}"
     state: absent
@@ -15,7 +15,7 @@
 - name: Add the flathub flatpak repository remote to the user installation
   community.general.flatpak_remote:
     name: flathub
-    state: present
+    state: latest
     flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
     method: user
 
@@ -32,11 +32,11 @@
       - org.signal.Signal
       - org.videolan.VLC
       - tv.kodi.Kodi
-    state: present
+    state: latest
     method: user
 
 
-- include_tasks: install-firefox.yml
+- ansible.builtin.include_tasks: install-firefox.yml
 
 
 # Games
@@ -49,11 +49,11 @@
         #- com.valvesoftware.Steam
         - com.endlessnetwork.passage
         - com.endlessnetwork.aqueducts
-      state: present
+      state: latest
       method: user
 
   - name: Install Steam
-    package:
+    ansible.builtin.package:
       name: steam
       state: latest
     become: true

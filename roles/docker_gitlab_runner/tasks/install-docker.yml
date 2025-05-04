@@ -17,12 +17,12 @@
       mode: '0644'
 
   - name: Ensure runc is not installed
-    package:
+    ansible.builtin.package:
       name: runc
       state: absent
 
   - name: Install Docker packages
-    package:
+    ansible.builtin.package:
       name:
         - container-selinux
         - docker-ce
@@ -31,13 +31,13 @@
     notify: Restart docker
 
   - name: Ensure /etc/docker/ directory exists
-    file:
+    ansible.builtin.file:
       path: /etc/docker
       state: directory
       mode: 0755
 
   - name: Ensure Docker is started and enabled at boot
-    service:
+    ansible.builtin.service:
       name: docker
       state: started
       enabled: true
