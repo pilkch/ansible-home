@@ -1,4 +1,15 @@
 ---
+# For ansible
+- name: Install ansible
+  ansible.builtin.package:
+    name:
+      - ansible
+      - ansible-core
+      - python3-passlib
+    state: latest
+  become: true
+
+# Developer
 - name: Install developer general tools
   ansible.builtin.package:
     name:
