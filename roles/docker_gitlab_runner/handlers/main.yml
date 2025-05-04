@@ -1,20 +1,24 @@
 ---
 - name: Restart docker
-  service:
+  ansible.builtin.service:
     name: docker
     state: restarted
   become: true
 
 - name: Restart gitlab-runner container block
   block:
+    # docker stop gitlab-runner
     - name: Stop gitlab-runner container
-      shell: docker stop gitlab-runner
-      ignore_errors: true
+      community.docker.docker_container:
+        name: gitlab-runner
+        state: stopped
       listen: "Restart gitlab-runner container"
 
+    # docker rm gitlab-runner
     - name: Remove gitlab-runner container
-      shell: docker rm gitlab-runner
-      ignore_errors: true
+      community.docker.docker_container:
+        name: gitlab-runner
+        state: absent
       listen: "Restart gitlab-runner container"
 
     - name: Start gitlab-runner container

@@ -1,36 +1,37 @@
 ---
-- set_fact:
+- ansible.builtin.set_fact:
     tandoor_compose_basedir: "/home/{{ tandoor_container_user }}/srv/tandoor"
 
-- set_fact:
+- ansible.builtin.set_fact:
     tandoor_nginx_config: "{{ tandoor_compose_basedir }}/nginx_config"
 
-- set_fact:
+- ansible.builtin.set_fact:
     tandoor_nginx_ssl: "{{ tandoor_compose_basedir }}/nginx_ssl"
 
 # User and group
 - block:
   - name: "Create tandoor group"
-    group:
+    ansible.builtin.group:
       name: "{{ tandoor_container_group }}"
 
   - name: "Create tandoor user"
-    user:
+    ansible.builtin.user:
       name: "{{ tandoor_container_user }}"
       password: "{{ tandoor_container_user_password | password_hash('sha512') }}"
       update_password: always
       groups: "{{ tandoor_container_group }}"
-      append: yes
+      append: true
 
   become: true
 
 
 # Create folders
 - name: Create the data folders for Tandoor
-  file:
+  ansible.builtin.file:
     path: "{{ tandoor_compose_basedir }}/{{ item }}"
     owner: "{{ tandoor_container_user }}"
     group: "{{ tandoor_container_group }}"
+    mode: '0770'
     state: directory
   with_items:
     - nginx_config
@@ -124,5 +125,5 @@
     container_firewall_ports:
       - "{{ tandoor_https_port }}/tcp"
 
-  import_role:
+  ansible.builtin.import_role:
     name: podman_container

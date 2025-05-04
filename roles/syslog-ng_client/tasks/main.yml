@@ -1,6 +1,6 @@
 ---
 - block:
-  - set_fact:
+  - ansible.builtin.set_fact:
       syslogng_tls_cert_folder: /opt/syslog-ng/etc/syslog-ng/ca.d
       syslogng_server_ip: "{{ hostvars['infrastructure.network.home'].ansible_host }}"
 
@@ -17,11 +17,14 @@
   #    var: result
 
   - name: Calculate syslog-ng server certificate hash
-    shell: "echo \"{{ syslogng_server_certificate }}\" | openssl x509 -noout -hash"
-    register: result
+    ansible.builtin.shell:
+      cmd: |
+        set -o pipefail
+        echo "{{ syslogng_server_certificate }}" | openssl x509 -noout -hash
+    register: syslog_server_certificate_hash
 
-  - set_fact:
-      syslogng_server_certificate_fingerprint: "{{ result.stdout }}"
+  - ansible.builtin.set_fact:
+      syslogng_server_certificate_fingerprint: "{{ syslog_server_certificate_hash.stdout }}"
 
   delegate_to: localhost
   connection: local

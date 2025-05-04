@@ -1,9 +1,9 @@
 ---
 - name: Check if OpenSSH Server is installed
-  win_shell: |
+  ansible.windows.win_shell: |
     $installed = $false
     $cap = get-windowscapability -online | ? Name -like '{{ win_openssh_capability_name }}'
-   
+
     if ($cap) {
       if ($cap.State -eq [Microsoft.Dism.Commands.PackageFeatureState]::Installed) {
         $installed = $true
@@ -11,23 +11,23 @@
     }
     Write-Host $installed
   register: opensshserver_installed
-  changed_when: False
+  changed_when: false
 
 - name: Install OpenSSH Server
-  win_shell: |
+  ansible.windows.win_shell: |
     Add-WindowsCapability -Online -Name '{{ win_openssh_capability_name }}'
-  when: 
+  when:
     - opensshserver_installed.stdout is match("False*")
   register: opensshserver_status
 
 - name: Start OpenSSH service
-  win_service:
+  ansible.windows.win_service:
     name: sshd
     start_mode: auto
     state: started
 
 - name: Open firewall port
-  win_firewall_rule:
+  community.windows.win_firewall_rule:
     name: OpenSSH SSH Server (sshd)
     localport: 22
     action: allow
@@ -35,10 +35,10 @@
     program: "%SystemRoot%\\system32\\OpenSSH\\sshd.exe"
     protocol: tcp
     state: present
-    enabled: yes
+    enabled: true
 
 - name: Set the default shell to Powershell (Required for ansible)
-  win_regedit:
+  ansible.windows.win_regedit:
     path: HKLM:\SOFTWARE\OpenSSH
     name: DefaultShell
     data: "{{ ansible_env.SystemRoot }}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
@@ -48,25 +48,25 @@
 # TODO: Do we need this?
 - block:
   - name: Copy the SSH key from the ansible controller's home directory (Assumed to be Linux) to the Windows host
-    win_copy:
-      src: "{{ lookup('env','HOME') + '/.ssh/id_rsa.pub' }}"
+    ansible.windows.win_copy:
+      src: "{{ lookup('env', 'HOME') + '/.ssh/id_rsa.pub' }}"
       dest: "{{ ansible_env.ProgramData }}\\ssh\\administrators_authorized_keys"
 
   - name: Disable ACL Inheritance on administrators_authorized_keys
-    win_acl_inheritance:
+    ansible.windows.win_acl_inheritance:
       path: "{{ ansible_env.ProgramData }}\\ssh\\administrators_authorized_keys"
-      reorganize: yes
+      reorganize: true
       state: absent
 
   - name: Get local admin group name
-    win_shell: |
+    ansible.windows.win_shell: |
       $admins = ([System.Security.Principal.SecurityIdentifier]'S-1-5-32-544').Translate( [System.Security.Principal.NTAccount]).Value
       write-host $admins
     register: localadmin_result
     changed_when: false
 
   - name: ACL FullControl for Administrators on administrators_authorized_keys
-    win_acl:
+    ansible.windows.win_acl:
       path: "{{ ansible_env.ProgramData }}\\ssh\\administrators_authorized_keys"
       user: "{{ localadmin_result.stdout | trim }}"
       rights: FullControl
@@ -74,7 +74,7 @@
       state: present
 
   - name: ACL FullControl for SYSTEM on administrators_authorized_keys
-    win_acl:
+    ansible.windows.win_acl:
       path: "{{ ansible_env.ProgramData }}\\ssh\\administrators_authorized_keys"
       user: SYSTEM
       rights: FullControl

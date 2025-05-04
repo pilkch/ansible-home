@@ -1,3 +1,4 @@
+---
 - name: Reboot machine
-  reboot:
+  ansible.builtin.reboot:
   become: true

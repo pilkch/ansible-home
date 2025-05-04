@@ -1,19 +1,20 @@
 ---
 - block:
   - name: Create the configs folder
-    file:
+    ansible.builtin.file:
       path: "{{ stirlingpdf_configs }}"
       owner: "{{ stirlingpdf_container_user }}"
       group: "{{ stirlingpdf_container_group }}"
+      mode: '0770'
       state: directory
 
   - name: Check if public certificate exists
-    stat:
+    ansible.builtin.stat:
       path: "{{ stirlingpdf_configs }}/fullchain.pem"
     register: public_certificate
 
   - name: Check if private key exists
-    stat:
+    ansible.builtin.stat:
       path: "{{ stirlingpdf_configs }}/privkey.pem"
     register: private_key
 

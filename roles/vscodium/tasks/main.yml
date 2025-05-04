@@ -20,7 +20,7 @@
       metadata_expire: 1h
 
   - name: Install vscodium
-    package:
+    ansible.builtin.package:
       name:
         - codium
       state: latest

@@ -2,7 +2,7 @@
 # Remove "hp-uiscan" and "HPLIP Graphic Tools" which were added to Fedora Workstation and Silverblue for some reason, I guess to help with printing?
 # https://github.com/fedora-silverblue/issue-tracker/issues/646 (For ostree, but workstation has the same issue)
 - name: Remove hp-uiscan and HPLIP Graphic Tools
-  package:
+  ansible.builtin.package:
     name:
       - "{{ item }}"
     state: absent
@@ -36,7 +36,7 @@
     method: user
 
 
-- include_tasks: install-firefox.yml
+- ansible.builtin.include_tasks: install-firefox.yml
 
 
 # Games
@@ -53,7 +53,7 @@
       method: user
 
   - name: Install Steam
-    package:
+    ansible.builtin.package:
       name: steam
       state: latest
     become: true
