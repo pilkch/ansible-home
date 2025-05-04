@@ -84,7 +84,7 @@ For some of the more sensitive services I use Let's Encrypt with certbot and a c
 
 On the machine that you edit your ansible on:
 ```bash
-sudo dnf install python3 python3-virtualenv augeas-libs
+sudo dnf install python3 pip3 python3-virtualenv augeas-libs
 virtualenv --python=python3 myenv
 pip install certbot certbot-dns-cloudflare cloudflare
 ```
@@ -103,6 +103,10 @@ Generate the certificates:
 ```
 
 ## Usage Examples
+
+```bash
+sudo dnf install ansible ansible-collection-containers-podman
+```
 
 ```bash
 ansible-playbook -i inventories/network_home.ini -l chris_linux_computer -K --ask-vault-pass playbooks/setup-desktop.yml
@@ -203,3 +207,27 @@ $ exit
 systemctl --user restart homeassistant-container
 ```
 Then log in via the web interface and change it to a real password (This ensures that the real password is not added to the bash history, even temporarily).
+
+## Gitlab-ci Updating Certificates
+
+Option 1, ansible-home scheduled pipeline which modifies vault in ansible-secrets and runs the ansible:
+```mermaid
+flowchart TD
+    GL[Gitlab] -- Gitlab Scheduled Pipeline --> AH[ansible-home]
+    AH[ansible-home] -- git clone --> AS[ansible-secrets]
+    AH[ansible-home] -- git branch, update certificates, git add git commit --> AH[ansible-home]
+    AH[ansible-home] -- git push --> AS[ansible-secrets]
+    AH[ansible-home] -- ansible-playbook homeassistant.yml --> HA[Home Assistant Server]
+```
+
+Option 2, ansible-secrets scheduled pipeline which modifies the vault triggers a downstream pipeline for ansible-home:
+```mermaid
+flowchart TD
+    GL[Gitlab] -- Gitlab Scheduled Pipeline --> AS[ansible-secrets]
+    AS[ansible-secrets] -- git branch, update certificates, git add git commit, git push --> AS[ansible-secrets]
+    AS[ansible-secrets] -- Gitlab Triggered Pipeline --> GL2[Gitlab]
+    GL2[Gitlab] -- Gitlab Triggered Pipeline --> AH[ansible-home]
+    AH[ansible-home] -- ansible-playbook homeassistant.yml --> HA[Home Assistant Server]
+```
+
+I went with Option 1, although Option 2 could be simpler and cleaner?

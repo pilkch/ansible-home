@@ -14,6 +14,7 @@
     owner: "{{ home_assistant_container_user }}"
     group: "{{ home_assistant_container_group }}"
     mode: 0600
+  register: home_assistant_public_key_copy
 
 - name: Install the private key
   ansible.builtin.template:
@@ -22,3 +23,9 @@
     owner: "{{ home_assistant_container_user }}"
     group: "{{ home_assistant_container_group }}"
     mode: 0600
+  register: home_assistant_private_key_copy
+
+- name: Set Home Assistant restart
+  set_fact:
+    home_assistant_restart: true
+  when: home_assistant_public_key_copy.changed or home_assistant_private_key_copy.changed
