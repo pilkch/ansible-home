@@ -3,7 +3,7 @@
   - name: Install dnf-automatic
     ansible.builtin.package:
       name: dnf-automatic
-      state: present
+      state: latest
 
   # I wouldn't copy the whole thing, I'd just update variables with community.general.ini_file, but the whole doesn't seem to exist by default? So we copy the whole thing
   - name: Copy dnf-automatic config file

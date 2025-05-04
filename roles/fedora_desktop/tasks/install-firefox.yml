@@ -23,7 +23,7 @@
   #    name:
   #      #- runtime/org.freedesktop.Platform.ffmpeg-full/x86_64/23.08 # NOTE: There are multiple versions and we have to pick a specific version https://kaythomas.dev/posts/flatpak-firefox-hardware-acceleration.html
   #      #- org.mozilla.firefox
-  #    state: present
+  #    state: latest
   #    method: user
 
 

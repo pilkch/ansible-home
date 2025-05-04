@@ -15,7 +15,7 @@
 - name: Add the flathub flatpak repository remote to the user installation
   community.general.flatpak_remote:
     name: flathub
-    state: present
+    state: latest
     flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
     method: user
 
@@ -32,7 +32,7 @@
       - org.signal.Signal
       - org.videolan.VLC
       - tv.kodi.Kodi
-    state: present
+    state: latest
     method: user
 
 
@@ -49,7 +49,7 @@
         #- com.valvesoftware.Steam
         - com.endlessnetwork.passage
         - com.endlessnetwork.aqueducts
-      state: present
+      state: latest
       method: user
 
   - name: Install Steam
