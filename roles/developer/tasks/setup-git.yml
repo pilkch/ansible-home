@@ -1,6 +1,6 @@
 ---
 - name: Install developer general tools
-  package:
+  ansible.builtin.package:
     name:
       - git
       - vim
@@ -9,19 +9,19 @@
 
 # SSH keys
 - name: Create .ssh directory
-  file:
+  ansible.builtin.file:
     path: "{{ ansible_env.HOME }}/.ssh"
     state: directory
     mode: 0740
 
 - name: Copy the certificate to the host
-  template:
+  ansible.builtin.template:
     src: id_ed25519-github.pub.j2
     dest: "{{ ansible_env.HOME }}/.ssh/id_ed25519-github.pub"
     mode: 0644
 
 - name: Copy the private key to the host
-  template:
+  ansible.builtin.template:
     src: id_ed25519-github.j2
     dest: "{{ ansible_env.HOME }}/.ssh/id_ed25519-github"
     mode: 0600
@@ -29,8 +29,8 @@
 
 
 # User configuration
-- name: Set email
-  git_config:
+- name: Set git configuration
+  community.general.git_config:
     name: "{{ item.name }}"
     scope: global
     value: "{{ item.value }}"

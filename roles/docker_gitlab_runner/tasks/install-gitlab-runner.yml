@@ -1,12 +1,12 @@
 ---
 - block:
   - name: Copy gitlab-runner config.toml
-    template:
+    ansible.builtin.template:
       src: config.toml.j2
       dest: /srv/gitlab-runner/config/config.toml
       owner: root
       group: root
-      mode: 770
+      mode: '0770'
     notify: Restart gitlab-runner container
 
   - name: Copy gitlab-runner self-signed certificate
@@ -20,7 +20,7 @@
 
   # Returns output something like "gitlab/gitlab-runner:v16.4.2"
   - name: Get gitlab-runner version
-    command: docker inspect --format=\'\{\{\.Config\.Image\}\}\' gitlab-runner
+    ansible.builtin.command: docker inspect --format=\'\{\{\.Config\.Image\}\}\' gitlab-runner
     ignore_errors: true
     register: gitlab_runner_inspect_version
 
@@ -28,14 +28,14 @@
 
 # NOTE: We use an assert purely as a place holder to check if the gitlab runner was not already running and notify the handler
 - name: Start gitlab-runner if it isn't running
-  assert: { that: true, quiet: true }
+  ansible.builtin.assert: { that: true, quiet: true }
   changed_when: true
   when: gitlab_runner_inspect_version.rc != 0
   notify: Restart gitlab-runner container
 
 # NOTE: We use an assert purely as a place holder to check if the gitlab runner version is different and notify the handler
 - name: Restart gitlab-runner if new version
-  assert: { that: true, quiet: true }
+  ansible.builtin.assert: { that: true, quiet: true }
   changed_when: true
   when: gitlab_runner_inspect_version.stdout != "gitlab/gitlab-runner:v" + gitlab_runner_version
   notify: Restart gitlab-runner container

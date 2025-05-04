@@ -1,21 +1,21 @@
 ---
-- set_fact:
+- ansible.builtin.set_fact:
     tasktracker_volumes_basedir: "/home/{{ tasktracker_container_user }}/srv/tasktracker"
     tasktracker_podman_cert_dir: "/home/{{ tasktracker_container_user }}/.config/certs/"
 
 # User and group
 - block:
   - name: "Create tasktracker group"
-    group:
+    ansible.builtin.group:
       name: "{{ tasktracker_container_group }}"
 
   - name: "Create tasktracker user"
-    user:
+    ansible.builtin.user:
       name: "{{ tasktracker_container_user }}"
       password: "{{ tasktracker_container_user_password | password_hash('sha512') }}"
       update_password: always
       groups: "{{ tasktracker_container_group }}"
-      append: yes
+      append: true
 
   become: true
 
@@ -23,10 +23,11 @@
 - block:
   # Create folders
   - name: Create the configuration and feed_data folders for tasktracker
-    file:
+    ansible.builtin.file:
       path: "{{ tasktracker_volumes_basedir }}/{{ item }}"
       owner: "{{ tasktracker_container_user }}"
       group: "{{ tasktracker_container_group }}"
+      mode: '0770'
       state: directory
     with_items:
       - configuration
@@ -58,12 +59,12 @@
 # Generate Self-Signed SSL Certificates
 - block:
   - name: Check if public certificate exists
-    stat:
+    ansible.builtin.stat:
       path: "{{ tasktracker_volumes_basedir }}/configuration/{{ tasktracker_fqdn }}.crt"
     register: public_certificate
 
   - name: Check if private key exists
-    stat:
+    ansible.builtin.stat:
       path: "{{ tasktracker_volumes_basedir }}/configuration/{{ tasktracker_fqdn }}.key"
     register: private_key
 
@@ -125,10 +126,11 @@
 # Login and pull the task-tracker image
 - block:
   - name: Create the podman certificates directory
-    file:
+    ansible.builtin.file:
       path: "{{ tasktracker_podman_cert_dir }}"
       owner: "{{ tasktracker_container_user }}"
       group: "{{ tasktracker_container_group }}"
+      mode: '0770'
       state: directory
 
   - name: Add tasktracker gitlab server certificate

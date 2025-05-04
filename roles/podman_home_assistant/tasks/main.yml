@@ -1,13 +1,14 @@
 ---
-- set_fact:
+- ansible.builtin.set_fact:
     home_assistant_volumes_basedir: "/home/{{ home_assistant_container_user }}/srv/homeassistant"
 
 # Configuration files
 - name: Create the config folder for Home Assistant
-  file:
+  ansible.builtin.file:
     path: "{{ home_assistant_volumes_basedir }}/config"
     owner: "{{ home_assistant_container_user }}"
     group: "{{ home_assistant_container_group }}"
+    mode: '0770'
     state: directory
 
 - name: Add Home Assistant configuration file
@@ -54,11 +55,11 @@
 # https://www.redhat.com/sysadmin/files-devices-podman
 
 - name: Add the user to the dialout group for accessing /dev/ttyACM0
-  user:
+  ansible.builtin.user:
     name: "{{ home_assistant_container_user }}"
     groups: dialout
-    append: yes
-    create_home: no
+    append: true
+    create_home: false
   become: true
 
 # Slight hack to allow the container to access /dev/ttyACM0
@@ -99,5 +100,5 @@
     container_firewall_ports:
       - "{{ home_assistant_port }}/tcp"
 
-  import_role:
+  ansible.builtin.import_role:
     name: podman_container

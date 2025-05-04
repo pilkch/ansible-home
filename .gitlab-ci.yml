@@ -1,16 +1,17 @@
+---
 stages:
   - tests-and-checks
 
 default:
   before_script:
-    - dnf install -y yamllint python3-ansible-lint
+    - dnf install -y ansible yamllint python3-ansible-lint ansible-collection-containers-podman
 
 check-yaml:
   stage: tests-and-checks
   tags:
     - linux
   script:
-    - yamllint .
+    - yamllint -c .yamllint .
 
 check-ansible:
   stage: tests-and-checks

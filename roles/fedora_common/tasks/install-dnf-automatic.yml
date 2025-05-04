@@ -1,0 +1,24 @@
+---
+- block:
+  - name: Install dnf-automatic
+    ansible.builtin.package:
+      name: dnf-automatic
+      state: latest
+
+  # I wouldn't copy the whole thing, I'd just update variables with community.general.ini_file, but the whole doesn't seem to exist by default? So we copy the whole thing
+  - name: Copy dnf-automatic config file
+    ansible.builtin.copy:
+      src: automatic.conf
+      dest: /etc/dnf/automatic.conf
+      owner: root
+      group: root
+      mode: '0644'
+
+  # By default the timer is at 6am, which sounds ok
+  - name: Start and enable systemd timer for dnf-automatic
+    ansible.builtin.service:
+      name: dnf-automatic.timer
+      state: started
+      enabled: true
+
+  become: true

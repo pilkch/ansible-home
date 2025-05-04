@@ -1,33 +1,34 @@
 ---
-- set_fact:
+- ansible.builtin.set_fact:
     stirlingpdf_compose_basedir: "/home/{{ stirlingpdf_container_user }}/srv/stirlingpdf"
 
-- set_fact:
+- ansible.builtin.set_fact:
     stirlingpdf_configs: "{{ stirlingpdf_compose_basedir }}/configs"
 
 # User and group
 - block:
   - name: "Create stirlingpdf group"
-    group:
+    ansible.builtin.group:
       name: "{{ stirlingpdf_container_group }}"
 
   - name: "Create stirlingpdf user"
-    user:
+    ansible.builtin.user:
       name: "{{ stirlingpdf_container_user }}"
       password: "{{ stirlingpdf_container_user_password | password_hash('sha512') }}"
       update_password: always
       groups: "{{ stirlingpdf_container_group }}"
-      append: yes
+      append: true
 
   become: true
 
 
 # Create folders
 - name: Create the data folders for StirlingPDF
-  file:
+  ansible.builtin.file:
     path: "{{ stirlingpdf_compose_basedir }}/{{ item }}"
     owner: "{{ stirlingpdf_container_user }}"
     group: "{{ stirlingpdf_container_group }}"
+    mode: '0770'
     state: directory
   with_items:
     - configs
@@ -91,5 +92,5 @@
     container_firewall_ports:
       - "{{ stirlingpdf_https_port }}/tcp"
 
-  import_role:
+  ansible.builtin.import_role:
     name: podman_container

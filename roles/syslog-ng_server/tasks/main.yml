@@ -1,5 +1,5 @@
 ---
-- set_fact:
+- ansible.builtin.set_fact:
     syslogng_tls_cert_folder: /opt/syslog-ng/etc/syslog-ng/cert.d
     syslogng_tls_key_folder: /opt/syslog-ng/etc/syslog-ng/key.d
   delegate_to: localhost

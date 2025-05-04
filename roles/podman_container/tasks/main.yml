@@ -51,6 +51,7 @@
     state: directory
     owner: "{{ container_user }}"
     group: "{{ container_group }}"
+    mode: '0770'
   become: true
   become_user: "{{ container_user }}"
 

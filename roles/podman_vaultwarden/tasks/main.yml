@@ -1,31 +1,32 @@
 ---
-- set_fact:
+- ansible.builtin.set_fact:
     vaultwarden_volumes_basedir: "/home/{{ vaultwarden_container_user }}/srv/vaultwarden"
 
 # User and group
 - block:
   - name: "Create vaultwarden group"
-    group:
+    ansible.builtin.group:
       name: "{{ vaultwarden_container_group }}"
 
   - name: "Create vaultwarden user"
-    user:
+    ansible.builtin.user:
       name: "{{ vaultwarden_container_user }}"
       password: "{{ vaultwarden_container_user_password | password_hash('sha512') }}"
       update_password: always
       groups: "{{ vaultwarden_container_group }}"
-      append: yes
+      append: true
 
   become: true
 
 
 # Create folders
 - name: Create the ssl and data folders for Vaultwarden
-  file:
+  ansible.builtin.file:
     path: "{{ vaultwarden_volumes_basedir }}/{{ item }}"
     owner: "{{ vaultwarden_container_user }}"
     group: "{{ vaultwarden_container_group }}"
     state: directory
+    mode: '0770'
   with_items:
     - ssl
     - data
@@ -36,12 +37,12 @@
 # SSL Certificates
 - block:
   - name: Check if public certificate exists
-    stat:
+    ansible.builtin.stat:
       path: "{{ vaultwarden_volumes_basedir }}/ssl/{{ vaultwarden_fqdn }}.crt"
     register: public_certificate
 
   - name: Check if private key exists
-    stat:
+    ansible.builtin.stat:
       path: "{{ vaultwarden_volumes_basedir }}/ssl/{{ vaultwarden_fqdn }}.key"
     register: private_key
 
@@ -120,5 +121,5 @@
     container_firewall_ports:
       - "{{ vaultwarden_https_port }}/tcp"
 
-  import_role:
+  ansible.builtin.import_role:
     name: podman_container

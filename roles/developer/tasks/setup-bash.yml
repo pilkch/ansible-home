@@ -1,6 +1,6 @@
 ---
 - name: Keep a longer bash history
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "{{ ansible_env.HOME }}/.bashrc"
     line: "{{ item }}"
   loop:

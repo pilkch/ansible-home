@@ -1,19 +1,20 @@
 ---
 - block:
   - name: Create the ssl folder
-    file:
+    ansible.builtin.file:
       path: "{{ tandoor_nginx_ssl }}"
       owner: "{{ tandoor_container_user }}"
       group: "{{ tandoor_container_group }}"
+      mode: '0770'
       state: directory
 
   - name: Check if public certificate exists
-    stat:
+    ansible.builtin.stat:
       path: "{{ tandoor_nginx_ssl }}/fullchain.pem"
     register: public_certificate
 
   - name: Check if private key exists
-    stat:
+    ansible.builtin.stat:
       path: "{{ tandoor_nginx_ssl }}/privkey.pem"
     register: private_key
 
