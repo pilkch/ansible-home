@@ -26,6 +26,6 @@
   register: home_assistant_private_key_copy
 
 - name: Set Home Assistant restart
-  set_fact:
+  ansible.builtin.set_fact:
     home_assistant_restart: true
   when: home_assistant_public_key_copy.changed or home_assistant_private_key_copy.changed
