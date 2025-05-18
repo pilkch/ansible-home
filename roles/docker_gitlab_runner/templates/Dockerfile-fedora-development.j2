@@ -1,0 +1,17 @@
+FROM fedora:{{ gitlab_runner_executor_docker_image_version }}
+
+# Install basics and common library dependencies
+RUN dnf -y update && yum install -y git gcc gcc-g++ clang cmake make json-c-devel gtest-devel gmock-devel ShellCheck \
+  gnutls-devel libxdg-basedir-devel libxml2-devel \
+  SDL3-devel SDL3_image-devel \
+  mesa-libGL-devel mesa-libGLU-devel GLee-devel \
+  freetype-devel && \
+  dnf clean all
+
+# Fix the Gcc 15 C++ headers
+RUN sed -i "/const error_category& socket_category() noexcept/c\  inline const error_category& socket_category() noexcept" /usr/include/c++/15/experimental/socket
+RUN sed -i "/const error_category& stream_category() noexcept/c\  inline const error_category& stream_category() noexcept" /usr/include/c++/15/experimental/buffer
+
+WORKDIR /root/gitlab-runner/
+
+ENTRYPOINT /bin/bash

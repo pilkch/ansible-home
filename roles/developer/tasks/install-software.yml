@@ -39,13 +39,11 @@
   ansible.builtin.package:
     name:
       - gtest-devel
+      - gmock-devel
       - gnutls-devel
       - libxdg-basedir-devel
-      - SDL2-devel
-      - SDL2_image-devel
-      - SDL2_mixer-devel
-      - SDL2_net-devel
-      - SDL2_ttf-devel
+      - SDL3-devel
+      - SDL3_image-devel
       - GLee-devel
       - freetype-devel
       - libxml2-devel
